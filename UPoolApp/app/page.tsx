@@ -2,32 +2,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Users, TrendingUp, Shield, Zap } from "lucide-react"
 import Link from "next/link"
+import { Header } from "@/components/header"
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      {/* Header */}
-      <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">U</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">UPool</span>
-          </div>
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
-              How it works
-            </Link>
-            <Link href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
-              Explore Pools
-            </Link>
-            <Button variant="outline" size="sm">
-              Connect Wallet
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <Header showCreateButton={true} showExploreButton={false} />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
