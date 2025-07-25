@@ -1,7 +1,7 @@
 # CLAUDE.md - UPool Development Guide
 
 ## Project Overview
-UPool is a social funding app built on Base blockchain that allows friends, communities, and travelers to pool money toward shared goals. The platform uses DeFi yield strategies to grow pooled funds and milestone-based validation for fund release.
+UPool is a social funding app built on Base blockchain that allows friends, communities, and travelers to pool money toward shared goals. The platform uses AI-optimized Morpho Protocol lending strategies to grow pooled funds and milestone-based validation for fund release.
 
 **Domain:** UPool.fun  
 **Tagline:** Fund together. Grow together. Go further.
@@ -88,7 +88,7 @@ npm run lint
 ## Core Features (Implemented/Planned)
 1. **Pool Creation** - Multi-step form for setting up funding goals
 2. **Milestone Tracking** - Progress visualization and validation
-3. **Yield Farming** - Base blockchain DeFi integration
+3. **AI-Optimized Yield** - Base Agent Kit AI optimizes Morpho Protocol lending strategies
 4. **Role-based Access** - Creator, Contributor, Donor, Investor, Verifier, Moderator
 5. **Trust System** - Reputation scoring and Talent Protocol integration
 6. **Voting Mechanisms** - Milestone approval and governance
@@ -132,10 +132,56 @@ npm run lint
 
 ## Blockchain Integration (Planned)
 - **Network:** Base blockchain
-- **Yield Strategy:** Base Agent Kit integration
+- **Yield Strategy:** Base Agent Kit AI optimizes Morpho Protocol lending via Base OnchainKit
 - **Smart Contracts:** Solidity-based pool management
 - **Wallet Integration:** Privy, Worldcoin ID support
 - **Storage:** IPFS for proofs and NFT metadata
+
+## Morpho Protocol Integration
+
+### Base OnchainKit APIs Used
+- **Deposit Integration:** `buildDepositToMorphoTx` - Deposits pool funds to Morpho lending markets
+- **Withdrawal Integration:** `buildWithdrawFromMorphoTx` - Withdraws funds for milestone payouts
+- **React Hooks:**
+  - `useBuildDepositToMorphoTx` - React hook for deposit transactions
+  - `useBuildWithdrawFromMorphoTx` - React hook for withdrawal transactions
+  - `useEarnContext` - Context for managing yield earning state
+
+### AI Yield Optimization Flow
+1. **Pool Creation:** Base Agent Kit AI analyzes available Morpho markets
+2. **Strategy Selection:** AI selects optimal lending markets based on:
+   - Current APY rates across Morpho markets
+   - Pool timeline and liquidity requirements  
+   - Risk assessment and market conditions
+3. **Automated Deposits:** Funds automatically deposited via OnchainKit when contributions are made
+4. **Continuous Optimization:** AI monitors and rebalances positions as market conditions change
+5. **Milestone Withdrawals:** Strategic withdrawals executed via OnchainKit for milestone payouts
+
+### Technical Implementation
+```typescript
+// Example integration patterns
+import {
+  buildDepositToMorphoTx,
+  buildWithdrawFromMorphoTx,
+  useBuildDepositToMorphoTx,
+  useBuildWithdrawFromMorphoTx,
+  useEarnContext
+} from '@coinbase/onchainkit';
+
+// Pool funds deposit to Morpho
+const depositTx = buildDepositToMorphoTx({
+  amount: poolContributionAmount,
+  marketId: agentSelectedMarketId,
+  userAddress: poolSmartWalletAddress
+});
+
+// Milestone payout withdrawal
+const withdrawTx = buildWithdrawFromMorphoTx({
+  amount: milestonePayoutAmount,
+  marketId: currentMarketId,
+  userAddress: poolSmartWalletAddress
+});
+```
 
 ## Testing & Quality
 - TypeScript for type safety

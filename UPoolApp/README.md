@@ -2,13 +2,13 @@
 
 **Fund together. Grow together. Go further.**
 
-UPool is a social funding platform that allows friends, communities, and travelers to pool money toward shared goals, earn yield through DeFi strategies on the Base blockchain, and unlock funds based on milestone validation and community voting.
+UPool is a social funding platform that allows friends, communities, and travelers to pool money toward shared goals, earn yield through AI-optimized Morpho lending strategies on the Base blockchain, and unlock funds based on milestone validation and community voting.
 
 ## 🌟 Features
 
 ### Core Functionality
 - **Pool Creation**: Create funding pools with customizable milestones and unlock rules
-- **Yield Farming**: Automatic yield generation using Base Agent Kit while funds are pooled
+- **AI-Optimized Yield**: Automatic yield generation using Base Agent Kit AI to optimize Morpho Protocol lending while funds are pooled
 - **Milestone-Based Release**: Funds unlock progressively as verified milestones are completed
 - **Community Voting**: Democratic approval system for milestone completion and new members
 - **Multi-Role System**: Support for Creators, Contributors, Donors, Investors, Verifiers, and Moderators
@@ -142,7 +142,7 @@ Complete shadcn/ui component library including:
 ## 🌐 Blockchain Integration (Planned)
 
 - **Network**: Base blockchain
-- **Yield Strategy**: Base Agent Kit for automated DeFi yield
+- **Yield Strategy**: Base Agent Kit AI for automated Morpho Protocol optimization
 - **Smart Contracts**: Solidity-based pool management and escrow
 - **Wallet Support**: MetaMask, Coinbase Wallet, WalletConnect
 - **Storage**: IPFS for milestone proofs and NFT metadata

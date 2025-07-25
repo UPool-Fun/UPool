@@ -4,15 +4,19 @@
 
 UPool is a revolutionary social funding platform built on the Base blockchain that enables friends, communities, and travelers to pool money toward shared goals, earn yield through DeFi strategies, and unlock funds based on milestone validation and community voting.
 
+Built as a native Farcaster Mini App using Minikit, UPool leverages the Farcaster social graph for trust-based pool discovery, viral sharing through Frames, and seamless wallet interactions within the Farcaster ecosystem.
+
 ---
 
 ## 🌟 Vision
 
 UPool transforms how communities fund their dreams by combining:
-- **Social Trust** - Reputation-based interactions between real people
-- **Smart Finance** - Automated yield generation on pooled funds
+- **Native Social Integration** - Built directly into the Farcaster ecosystem for seamless social experiences
+- **Social Trust** - Reputation-based interactions enhanced by Farcaster social graph analysis
+- **Smart Finance** - Automated yield generation on pooled funds via Morpho Protocol
 - **Milestone Accountability** - Progressive fund release based on verified achievements
-- **Democratic Governance** - Community-driven decision making
+- **Democratic Governance** - Community-driven decision making with weighted voting
+- **Viral Distribution** - Interactive Farcaster Frames for pool sharing and discovery
 
 ---
 
@@ -38,10 +42,13 @@ graph TB
         BASE[Base Network]
         SC[Smart Contracts]
         AAVE[Yield Protocols]
-        AGENT[Base Agent Kit]
+        AGENT[Base Agent Kit - AI Yield Optimizer]
+        MORPHO[Morpho Protocol]
     end
     
     subgraph "External Services"
+        MINIKIT[Minikit Integration]
+        FARCASTER[Farcaster SDK + Frames]
         TALENT[Talent Protocol]
         ENS[ENS Identity]
         WALLET[Wallet Providers]
@@ -54,9 +61,11 @@ graph TB
     API --> IPFS
     API --> SC
     SC --> BASE
-    SC --> AAVE
     SC --> AGENT
+    AGENT --> MORPHO
     API --> TALENT
+    UA --> MINIKIT
+    UA --> FARCASTER
     UA --> WALLET
     UA --> ENS
 ```
@@ -169,30 +178,38 @@ sequenceDiagram
     participant SC as Smart Contract
     participant IPFS as IPFS Storage
     participant AI as AI Service
+    participant KYC as KYC/Identity
+    participant TALENT as Talent Protocol
     
-    Note over C,AI: Pool Creation Flow
-    C->>UI: Navigate to Create Pool
-    UI->>C: Display creation form
-    C->>UI: Fill pool details & milestones
-    UI->>API: Submit pool data
-    API->>IPFS: Store pool metadata
-    IPFS-->>API: Return IPFS hash
-    API->>SC: Deploy pool contract
-    SC-->>API: Return contract address
-    API-->>UI: Pool created successfully
-    UI-->>C: Show pool dashboard
+    Note over C,TALENT: Phase 1: Pool Creation Process
+    C->>KYC: Complete identity verification
+    KYC->>TALENT: Verify Web3 reputation
+    TALENT-->>C: Return trust score
+    C->>UI: Access pool creation wizard
     
-    Note over C,AI: Milestone Submission Flow
-    C->>UI: Upload milestone proof
-    UI->>IPFS: Store proof documents
-    IPFS-->>UI: Return proof hash
-    UI->>API: Submit milestone claim
-    API->>AI: Analyze proof validity
-    AI-->>API: Return analysis results
-    API->>SC: Submit milestone for voting
-    SC-->>API: Milestone submitted
-    API-->>UI: Notify contributors
-    UI-->>C: Show submission status
+    UI->>C: Basic info form (name, description, category)
+    C->>UI: Define financial goals & milestones
+    UI->>C: Configure governance & visibility
+    C->>UI: Set yield strategy & vanity URL
+    
+    UI->>API: Submit complete pool configuration
+    API->>IPFS: Store metadata & milestone details
+    IPFS-->>API: Return content hashes
+    API->>SC: Deploy pool smart contract
+    SC-->>API: Return contract address & wallet
+    API->>UI: Generate share links & QR codes
+    UI-->>C: Pool created - show management dashboard
+    
+    Note over C,TALENT: Phase 2: Pool Management Operations
+    C->>UI: Review join requests
+    UI->>SC: Approve/reject members
+    C->>UI: Upload milestone proof documents
+    UI->>IPFS: Store proof materials
+    UI->>AI: Request proof analysis
+    AI-->>UI: Return validation summary
+    UI->>SC: Submit milestone for community vote
+    SC->>API: Trigger contributor notifications
+    API-->>C: Show voting progress & results
 ```
 
 ### Contributor Role - Funding & Voting
@@ -203,35 +220,58 @@ sequenceDiagram
     participant UI as Frontend
     participant API as Backend API
     participant SC as Smart Contract
-    participant YIELD as Yield Protocol
+    participant MORPHO as Morpho Protocol
+    participant AGENT as Base Agent Kit AI
     participant NOTIF as Notifications
+    participant AI as AI Analysis
     
-    Note over Con,NOTIF: Join Pool & Contribute
-    Con->>UI: Connect wallet
-    UI->>SC: Check wallet balance
-    SC-->>UI: Return balance
-    Con->>UI: Enter contribution amount
-    UI->>SC: Execute contribution
-    SC->>YIELD: Deposit to yield strategy
-    YIELD-->>SC: Confirm deposit
-    SC-->>UI: Contribution successful
-    UI-->>Con: Show pool membership
+    Note over Con,AI: Phase 1: Discovery & Evaluation
+    Con->>UI: Browse discovery feed
+    UI->>API: Fetch pools with filters
+    API-->>UI: Return curated pool list
+    Con->>UI: Select pool for review
+    UI->>API: Fetch detailed pool data
+    API->>SC: Get milestone structure & history
+    SC-->>API: Return pool performance data
+    API-->>UI: Show comprehensive pool analysis
+    Con->>UI: Conduct due diligence review
     
-    Note over Con,NOTIF: Milestone Voting
-    NOTIF->>Con: New milestone to vote on
-    Con->>UI: Review milestone proof
-    UI->>API: Fetch proof details
-    API-->>UI: Return proof & AI analysis
-    Con->>UI: Cast vote (approve/reject)
-    UI->>SC: Submit vote
-    SC->>SC: Check voting threshold
-    alt Threshold reached
-        SC->>SC: Execute milestone payout
-        SC->>NOTIF: Notify all members
-    else Still collecting votes
-        SC-->>UI: Vote recorded
+    Note over Con,AI: Phase 2: Joining & Contributing
+    Con->>UI: Submit join request
+    UI->>SC: Check approval requirements
+    SC->>NOTIF: Notify existing contributors
+    NOTIF->>Con: Approval granted notification
+    Con->>UI: Configure contribution amount
+    UI->>SC: Execute fund contribution
+    SC->>AGENT: Deploy to yield farming
+    AGENT->>MORPHO: Optimize strategy
+        MORPHO-->>SC: Confirm yield strategy active
+    SC-->>UI: Issue membership tokens
+    UI-->>Con: Setup notifications & preferences
+    
+    Note over Con,AI: Phase 3: Active Participation
+    NOTIF->>Con: Milestone submitted for vote
+    Con->>UI: Access voting interface
+    UI->>API: Fetch proof materials
+    API->>AI: Get analysis summary
+    AI-->>UI: Return validation insights
+    Con->>UI: Review verifier attestations
+    Con->>UI: Cast weighted vote with comments
+    UI->>SC: Record vote on blockchain
+    SC->>SC: Calculate vote threshold
+    alt Milestone approved
+        SC->>AGENT: Withdraw payout funds
+        SC->>API: Execute fund release
+        SC->>NOTIF: Notify milestone completion
+    else More votes needed
+        SC-->>UI: Update voting progress
     end
-    UI-->>Con: Show voting result
+    
+    Con->>UI: Monitor yield accumulation
+    UI->>SC: Check personal yield balance
+    Con->>UI: Withdraw available yield
+    SC->>AGENT: Process yield withdrawal
+    YIELD-->>Con: Transfer yield to wallet
 ```
 
 ### Donor Role - Milestone Sponsorship
@@ -279,30 +319,52 @@ sequenceDiagram
     participant API as Backend API
     participant SC as Smart Contract
     participant ANALYTICS as Analytics
-    participant YIELD as Yield Protocol
+    participant MORPHO as Morpho Protocol
+    participant AGENT as Base Agent Kit AI
+    participant KYC as Accreditation
     
-    Note over I,YIELD: Investment Analysis
-    I->>UI: Browse investment opportunities
-    UI->>API: Get pools with ROI potential
-    API->>ANALYTICS: Calculate ROI projections
-    ANALYTICS-->>API: Return risk/reward analysis
-    API-->>UI: Display investment metrics
+    Note over I,KYC: Phase 1: Investment Analysis
+    I->>KYC: Complete accredited investor verification
+    KYC-->>I: Confirm accreditation status
+    I->>UI: Access investor dashboard
+    UI->>ANALYTICS: Request market analysis
+    ANALYTICS->>API: Fetch historical performance data
+    API-->>ANALYTICS: Return pool success rates
+    ANALYTICS-->>UI: Generate ROI projections
     
-    I->>UI: Select investment amount & terms
-    UI->>SC: Create investment agreement
-    SC->>SC: Lock investment funds
-    SC->>YIELD: Deploy to yield strategy
-    SC-->>UI: Investment confirmed
-    UI-->>I: Show investment dashboard
+    I->>UI: Filter pools by category & performance
+    UI->>API: Fetch detailed pool metrics
+    API->>SC: Get creator track record
+    SC-->>API: Return milestone completion history
+    I->>UI: Conduct comprehensive due diligence
+    UI->>ANALYTICS: Calculate risk-adjusted returns
+    ANALYTICS-->>UI: Present investment recommendation
     
-    Note over I,YIELD: ROI Distribution
-    SC->>SC: Pool completes successfully
-    SC->>YIELD: Withdraw total yield
-    YIELD-->>SC: Return principal + yield
-    SC->>SC: Calculate investor ROI
-    SC->>SC: Distribute ROI payments
-    SC->>UI: Notify ROI distribution
-    UI-->>I: Show ROI received
+    Note over I,KYC: Phase 2: Investment Execution
+    I->>UI: Structure investment terms
+    UI->>SC: Create investment smart contract
+    SC->>SC: Set milestone-based release triggers
+    I->>UI: Deploy capital to pool
+    UI->>SC: Lock investment funds in escrow
+    SC->>AGENT: Optimize yield farming strategy
+    AGENT->>MORPHO: Optimize strategy
+        MORPHO-->>SC: Confirm capital deployment
+    SC-->>UI: Generate investment tracking dashboard
+    
+    Note over I,KYC: Phase 3: Portfolio Management
+    I->>UI: Monitor portfolio performance
+    UI->>SC: Fetch real-time pool progress
+    SC->>ANALYTICS: Calculate current ROI
+    ANALYTICS-->>UI: Update performance metrics
+    I->>UI: Participate in strategic votes
+    UI->>SC: Cast investor votes on major decisions
+    
+    SC->>SC: Pool reaches success milestones
+    SC->>AGENT: Execute ROI distribution
+    YIELD->>SC: Calculate total returns
+    SC->>SC: Distribute investor payments
+    SC->>UI: Notify ROI distribution complete
+    UI-->>I: Show realized returns & reinvestment options
 ```
 
 ### Verifier Role - Milestone Validation
@@ -315,30 +377,42 @@ sequenceDiagram
     participant AI as AI Service
     participant IPFS as IPFS Storage
     participant SC as Smart Contract
+    participant EXTERNAL as External Sources
     
-    Note over V,SC: Verification Assignment
-    API->>V: Notify new milestone for verification
-    V->>UI: Access verification dashboard
-    UI->>API: Get pending verifications
-    API-->>UI: Return verification queue
-    V->>UI: Select milestone to verify
+    Note over V,EXTERNAL: Phase 1: Qualification & Assignment
+    V->>API: Complete verifier application
+    API->>SC: Record verifier credentials
+    SC-->>API: Issue verifier certification
+    API->>V: Assign based on expertise matching
+    V->>UI: Review milestone requirements
+    UI->>IPFS: Fetch all proof materials
+    IPFS-->>UI: Return documents & metadata
     
-    UI->>IPFS: Fetch proof documents
-    IPFS-->>UI: Return proof files
-    UI->>AI: Get AI analysis summary
-    AI-->>UI: Return validation insights
-    UI-->>V: Display proof & analysis
+    Note over V,EXTERNAL: Phase 2: Verification Process
+    UI->>AI: Request preliminary analysis
+    AI-->>UI: Return automated validation summary
+    V->>UI: Conduct detailed evidence review
+    UI->>EXTERNAL: Cross-reference external data
+    EXTERNAL-->>UI: Return verification data
+    V->>UI: Identify discrepancies or concerns
     
-    Note over V,SC: Verification Process
-    V->>UI: Review all evidence
-    V->>UI: Add verification notes
-    V->>UI: Submit verification decision
-    UI->>API: Process verification
-    API->>SC: Record verification on-chain
-    SC->>SC: Update milestone status
-    SC-->>API: Verification recorded
-    API-->>UI: Update verification status
-    UI-->>V: Show verification complete
+    V->>EXTERNAL: Contact third parties for confirmation
+    EXTERNAL-->>V: Provide verification responses
+    V->>UI: Document investigation findings
+    UI->>IPFS: Store verification evidence
+    
+    Note over V,EXTERNAL: Phase 3: Attestation & Reporting
+    V->>UI: Prepare comprehensive verification report
+    UI->>API: Submit verification decision
+    API->>SC: Record attestation on blockchain
+    SC->>SC: Update milestone verification status
+    SC->>API: Trigger community notification
+    API-->>UI: Notify contributors of verification
+    
+    V->>UI: Respond to community questions
+    UI->>API: Provide additional clarifications
+    API->>SC: Update verification details
+    SC-->>V: Complete verification cycle
 ```
 
 ### Moderator Role - Dispute Resolution
@@ -351,38 +425,57 @@ sequenceDiagram
     participant SC as Smart Contract
     participant IPFS as IPFS Storage
     participant NOTIF as Notifications
+    participant AI as AI Detection
+    participant COMMUNITY as Community
     
-    Note over M,NOTIF: Dispute Investigation
-    API->>M: Dispute reported in pool
-    M->>UI: Access moderation panel
-    UI->>API: Get dispute details
-    API->>IPFS: Fetch dispute evidence
-    IPFS-->>API: Return evidence files
-    API-->>UI: Display dispute case
+    Note over M,COMMUNITY: Phase 1: Dispute Intake & Triage
+    AI->>API: Flag suspicious activity pattern
+    COMMUNITY->>API: Submit dispute report
+    API->>M: Priority alert based on severity
+    M->>UI: Access dispute triage dashboard
+    UI->>API: Fetch case details & classification
+    API->>IPFS: Retrieve all relevant evidence
+    IPFS-->>UI: Return documentation & communications
+    M->>UI: Assess urgency & assign resources
     
-    M->>UI: Review all evidence
-    M->>UI: Contact involved parties
-    UI->>NOTIF: Send communication requests
-    NOTIF-->>UI: Responses received
+    Note over M,COMMUNITY: Phase 2: Investigation Process
+    M->>UI: Begin comprehensive evidence review
+    UI->>SC: Fetch transaction history
+    SC-->>UI: Return blockchain interaction data
+    M->>NOTIF: Contact all involved parties
+    NOTIF->>COMMUNITY: Request statements & evidence
+    COMMUNITY-->>NOTIF: Provide responses & documentation
     
-    Note over M,NOTIF: Dispute Resolution
-    M->>UI: Make resolution decision
-    UI->>API: Submit resolution
-    API->>SC: Execute resolution actions
+    M->>UI: Conduct stakeholder interviews
+    UI->>API: Document investigation timeline
+    API->>IPFS: Store investigation materials
+    M->>UI: Analyze patterns & precedents
     
-    alt Funds need redistribution
+    Note over M,COMMUNITY: Phase 3: Resolution & Implementation
+    M->>UI: Formulate resolution decision
+    UI->>API: Consult moderator consensus
+    API-->>UI: Return peer review feedback
+    M->>UI: Finalize resolution plan
+    
+    UI->>SC: Execute resolution smart contract
+    alt Fund redistribution required
         SC->>SC: Redistribute locked funds
-        SC->>NOTIF: Notify affected parties
-    else User needs penalty
-        SC->>SC: Apply reputation penalty
-        SC->>NOTIF: Notify penalized user
-    else No action needed
-        SC->>SC: Mark dispute resolved
+        SC->>NOTIF: Notify fund recipients
+    else Reputation penalty applied
+        SC->>SC: Update user trust scores
+        SC->>NOTIF: Notify penalized users
+    else Account restrictions imposed
+        SC->>SC: Implement usage limitations
+        SC->>NOTIF: Inform restricted users
+    else Educational resolution
+        SC->>SC: Mark case resolved
+        SC->>NOTIF: Share learning outcomes
     end
     
-    SC-->>API: Resolution executed
-    API-->>UI: Update case status
-    UI-->>M: Show resolution complete
+    M->>COMMUNITY: Publish resolution summary
+    COMMUNITY-->>M: Provide feedback on decision
+    M->>API: Update moderation precedents
+    API->>AI: Improve detection algorithms
 ```
 
 ---
@@ -437,47 +530,124 @@ sequenceDiagram
     SmartContract->>SmartContract: Mark pool as completed
 ```
 
-### Multi-Role Interaction Flow
+### Comprehensive Role Interaction Flow
 
 ```mermaid
-graph TD
-    subgraph "Pool Ecosystem"
-        Creator[Creator] --> CreatePool[Create Pool]
-        CreatePool --> SetMilestones[Set Milestones]
-        SetMilestones --> InviteMembers[Invite Members]
+graph TB
+    subgraph "Creator Ecosystem"
+        CREATOR[👤 Creator]
+        CREATE_POOL[🏊 Create Pool]
+        SETUP_MILESTONES[🎯 Setup Milestones]
+        MANAGE_MEMBERS[👥 Manage Members]  
+        UPLOAD_PROOF[📋 Upload Proof]
+        FUND_MGMT[💰 Fund Management]
         
-        Contributor[Contributor] --> JoinPool[Join Pool]
-        JoinPool --> ContributeFunds[Contribute Funds]
-        ContributeFunds --> VoteOnMilestones[Vote on Milestones]
-        
-        Donor[Donor] --> DiscoverPool[Discover Pool]
-        DiscoverPool --> SponsorMilestone[Sponsor Milestone]
-        SponsorMilestone --> ReviewProgress[Review Progress]
-        
-        Investor[Investor] --> AnalyzeROI[Analyze ROI]
-        AnalyzeROI --> InvestFunds[Invest Funds]
-        InvestFunds --> MonitorReturns[Monitor Returns]
-        
-        Verifier[Verifier] --> ReceiveRequest[Receive Verification Request]
-        ReceiveRequest --> ValidateProof[Validate Proof]
-        ValidateProof --> SubmitVerification[Submit Verification]
-        
-        Moderator[Moderator] --> HandleDispute[Handle Dispute]
-        HandleDispute --> InvestigateCase[Investigate Case]
-        InvestigateCase --> ResolveDispute[Resolve Dispute]
+        CREATOR --> CREATE_POOL
+        CREATE_POOL --> SETUP_MILESTONES
+        SETUP_MILESTONES --> MANAGE_MEMBERS
+        MANAGE_MEMBERS --> UPLOAD_PROOF
+        UPLOAD_PROOF --> FUND_MGMT
     end
     
-    subgraph "System Integration Points"
-        InviteMembers --> JoinPool
-        ContributeFunds --> YieldGeneration[Yield Generation]
-        VoteOnMilestones --> ValidateProof
-        SubmitVerification --> VoteOnMilestones
-        SponsorMilestone --> SetMilestones
-        InvestFunds --> YieldGeneration
-        MonitorReturns --> YieldGeneration
-        ResolveDispute --> ContributeFunds
-        ResolveDispute --> VoteOnMilestones
+    subgraph "Contributor Ecosystem"
+        CONTRIBUTOR[🤝 Contributor]
+        DISCOVERY[🔍 Pool Discovery]
+        DUE_DILIGENCE[📊 Due Diligence]
+        JOIN_CONTRIBUTE[💵 Join & Contribute]
+        MILESTONE_VOTE[🗳️ Milestone Voting]
+        MEMBER_APPROVAL[✅ Member Approval]
+        YIELD_MGMT[📈 Yield Management]
+        
+        CONTRIBUTOR --> DISCOVERY
+        DISCOVERY --> DUE_DILIGENCE
+        DUE_DILIGENCE --> JOIN_CONTRIBUTE
+        JOIN_CONTRIBUTE --> MILESTONE_VOTE
+        MILESTONE_VOTE --> MEMBER_APPROVAL
+        MEMBER_APPROVAL --> YIELD_MGMT
     end
+    
+    subgraph "Donor Ecosystem"
+        DONOR[💝 Donor]
+        EXPLORE_POOLS[🌐 Explore Pools]
+        MILESTONE_ANALYSIS[📋 Milestone Analysis]
+        SPONSOR_MILESTONE[🎁 Sponsor Milestone]
+        MONITOR_PROGRESS[👁️ Monitor Progress]
+        IMPACT_REVIEW[📈 Impact Assessment]
+        
+        DONOR --> EXPLORE_POOLS
+        EXPLORE_POOLS --> MILESTONE_ANALYSIS
+        MILESTONE_ANALYSIS --> SPONSOR_MILESTONE
+        SPONSOR_MILESTONE --> MONITOR_PROGRESS
+        MONITOR_PROGRESS --> IMPACT_REVIEW
+    end
+    
+    subgraph "Investor Ecosystem"
+        INVESTOR[📈 Investor]
+        MARKET_RESEARCH[📊 Market Research]
+        INVESTMENT_ANALYSIS[🔬 Investment Analysis]
+        PORTFOLIO_MGMT[📋 Portfolio Management]
+        ROI_OPTIMIZATION[💎 ROI Optimization]
+        
+        INVESTOR --> MARKET_RESEARCH
+        MARKET_RESEARCH --> INVESTMENT_ANALYSIS
+        INVESTMENT_ANALYSIS --> PORTFOLIO_MGMT
+        PORTFOLIO_MGMT --> ROI_OPTIMIZATION
+    end
+    
+    subgraph "Verifier Ecosystem"
+        VERIFIER[✅ Verifier]
+        QUALIFICATION[🎓 Qualification]
+        CASE_ASSIGNMENT[📝 Case Assignment]
+        EVIDENCE_ANALYSIS[🔍 Evidence Analysis]
+        VERIFICATION_REPORT[📄 Verification Report]
+        COMMUNITY_SUPPORT[🤝 Community Support]
+        
+        VERIFIER --> QUALIFICATION
+        QUALIFICATION --> CASE_ASSIGNMENT
+        CASE_ASSIGNMENT --> EVIDENCE_ANALYSIS
+        EVIDENCE_ANALYSIS --> VERIFICATION_REPORT
+        VERIFICATION_REPORT --> COMMUNITY_SUPPORT
+    end
+    
+    subgraph "Moderator Ecosystem"
+        MODERATOR[⚖️ Moderator]
+        DISPUTE_TRIAGE[🚨 Dispute Triage]
+        INVESTIGATION[🔍 Investigation]
+        RESOLUTION[⚖️ Resolution]
+        SYSTEM_IMPROVEMENT[⚡ System Improvement]
+        
+        MODERATOR --> DISPUTE_TRIAGE
+        DISPUTE_TRIAGE --> INVESTIGATION
+        INVESTIGATION --> RESOLUTION
+        RESOLUTION --> SYSTEM_IMPROVEMENT
+    end
+    
+    subgraph "Cross-Role Integration Points"
+        YIELD_GENERATION[💹 Yield Generation]
+        AI_VALIDATION[🤖 AI Validation]
+        SMART_CONTRACTS[📜 Smart Contracts]
+        TRUST_SCORING[🏆 Trust Scoring]
+        NOTIFICATIONS[🔔 Notifications]
+    end
+    
+    %% Cross-role connections
+    MANAGE_MEMBERS -.-> JOIN_CONTRIBUTE
+    UPLOAD_PROOF -.-> EVIDENCE_ANALYSIS
+    MILESTONE_VOTE -.-> VERIFICATION_REPORT
+    SPONSOR_MILESTONE -.-> SETUP_MILESTONES
+    INVESTMENT_ANALYSIS -.-> PORTFOLIO_MGMT
+    RESOLUTION -.-> FUND_MGMT
+    
+    %% System integration connections
+    JOIN_CONTRIBUTE --> YIELD_GENERATION
+    FUND_MGMT --> YIELD_GENERATION
+    UPLOAD_PROOF --> AI_VALIDATION
+    EVIDENCE_ANALYSIS --> AI_VALIDATION
+    MILESTONE_VOTE --> SMART_CONTRACTS
+    VERIFICATION_REPORT --> SMART_CONTRACTS
+    COMMUNITY_SUPPORT --> TRUST_SCORING
+    RESOLUTION --> TRUST_SCORING
+    SYSTEM_IMPROVEMENT --> NOTIFICATIONS
 ```
 
 ---
@@ -554,28 +724,52 @@ UPool/
 ## 🎯 Key Features
 
 ### 🏊 Pool Management
-- **Create Pools**: Multi-step wizard for setting up funding goals
-- **Milestone System**: Progressive fund release based on achievements
-- **Role-Based Access**: Different permissions for each user type
-- **Yield Generation**: Automated DeFi strategies on pooled funds
+- **Smart Pool Creation**: Multi-step wizard with AI-assisted milestone suggestions
+- **Vanity URLs**: Custom memorable links (e.g., upool.fun/p/eurotrip2025)
+- **Progressive Fund Release**: Milestone-based unlocking with weighted community voting
+- **Flexible Governance**: Configurable approval thresholds and voting mechanisms
+- **AI-Optimized Yield Generation**: Base Agent Kit AI optimizes Morpho Protocol lending strategies
 
-### 🤝 Social Features  
-- **Trust Scoring**: Reputation system for reliable interactions
-- **Community Voting**: Democratic decision-making process
-- **Viral Sharing**: Smart links and QR codes for easy sharing
-- **Discovery Feed**: TikTok-style exploration of public pools
+### 🤝 Social & Trust Features  
+- **Native Farcaster Integration**: Built-in Mini App experience with seamless wallet interactions
+- **Social Graph Analysis**: Trust scoring enhanced by Farcaster follows and social connections
+- **Viral Sharing**: Interactive Farcaster Frames for pool discovery and joining
+- **Multi-Layered Trust Scoring**: Combines behavior, completion history, and Farcaster social graph
+- **Social Login Integration**: Minikit (Farcaster), Privy, and Worldcoin ID
+- **Talent Protocol Integration**: Web3 identity verification and reputation import
+- **Democratic Governance**: Weighted voting based on contribution and trust scores
+- **Community-Driven Moderation**: Dispute resolution with AI assistance
 
-### 🔐 Security & Trust
-- **Blockchain Security**: Base network smart contracts
-- **Identity Verification**: ENS and Talent Protocol integration  
-- **AI Validation**: Automated proof verification system
-- **Dispute Resolution**: Community-driven conflict resolution
+### 🔐 Security & Verification
+- **Multi-Signature Security**: Enhanced protection for large transactions
+- **Professional Verifier Network**: Expert validation for milestone completion
+- **AI-Powered Fraud Detection**: Automated risk assessment and anomaly detection
+- **Comprehensive KYC/AML**: Tiered verification based on role and transaction volume
+- **Blockchain Immutability**: All critical actions recorded on Base network
 
-### 💰 Financial Features
-- **Multi-Asset Support**: Various cryptocurrency and token support
-- **Yield Optimization**: Base Agent Kit for maximum returns
-- **Flexible Funding**: Multiple ways to contribute (donate, invest, contribute)
-- **Transparent Accounting**: On-chain fund tracking and distribution
+### 💰 Advanced Financial Features
+- **Multi-Role Funding**: Support for Contributors, Donors, and Investors with different ROI models
+- **Yield Distribution**: Automated sharing of DeFi returns among stakeholders
+- **Milestone-Specific Sponsorship**: Donors can fund individual milestones
+- **ROI Tracking**: Comprehensive analytics for investor returns and performance
+- **Emergency Fund Protection**: Dispute resolution mechanisms with fund recovery
+
+### 🤖 AI & Automation
+- **Document Analysis**: Automated validation of milestone proof materials
+- **Content Generation**: AI-assisted pool descriptions and milestone suggestions
+- **Risk Assessment**: Intelligent evaluation of pool completion probability
+- **Personalized Discovery**: AI-powered recommendations based on user interests and history
+- **Automated Moderation**: Proactive detection of policy violations and suspicious activity
+
+### 🌐 Discovery & Engagement
+- **Native Farcaster Experience**: Mini App built directly into Farcaster clients
+- **Interactive Frames**: Rich pool previews and joining directly in Farcaster feeds
+- **TikTok-Style Feed**: Vertical scrolling discovery with engaging pool previews
+- **Social Graph Discovery**: Pool recommendations based on Farcaster connections
+- **Viral Sharing Mechanics**: Farcaster Frames, QR codes, smart links, and cast embedding
+- **Category-Based Discovery**: Advanced filtering by pool type, location, and success rate
+- **Real-Time Notifications**: Multi-channel alerts including Farcaster casts
+- **Community Building**: Channel-based pool communities within Farcaster ecosystem
 
 ---
 
@@ -590,7 +784,8 @@ UPool/
 ### Blockchain  
 - **Network**: Base (Ethereum L2)
 - **Contracts**: Solidity smart contracts
-- **Yield**: Base Agent Kit + DeFi protocols
+- **Yield**: Base Agent Kit AI + Morpho Protocol + Base OnchainKit
+- **Social Layer**: Minikit + Farcaster SDK for native social integration
 - **Storage**: IPFS for documents and metadata
 
 ### Backend Services
@@ -620,33 +815,63 @@ UPool/
 
 ## 📈 Roadmap
 
-### Phase 1: MVP (Current)
-- [x] Project architecture and setup
-- [x] Frontend application foundation
-- [x] Core UI components and design system
-- [ ] Smart contract development
-- [ ] Basic pool creation and management
-- [ ] Wallet integration
+### Phase 1: MVP Foundation (Q1-Q2 2025)
+**Core Platform Establishment**
+- [x] Project architecture and comprehensive documentation
+- [x] Frontend application foundation with Next.js and TypeScript
+- [x] Complete UI component library with shadcn/ui
+- [x] Detailed role definitions and workflow processes
+- [ ] Minikit integration for Farcaster Mini App experience
+- [ ] Basic Farcaster Frames for pool sharing and discovery
+- [ ] Smart contract development and deployment
+- [ ] Basic pool creation with milestone system
+- [ ] Farcaster + wallet integration and social login
+- [ ] AI-optimized Morpho lending implementation with Base Agent Kit
+- [ ] Basic voting and approval mechanisms
 
-### Phase 2: Core Features
-- [ ] Milestone system implementation
-- [ ] Yield farming integration
-- [ ] Voting mechanisms
-- [ ] AI validation system
-- [ ] Trust scoring
+**Target Metrics**: 100 beta users, 10 active pools, $50K TVL
 
-### Phase 3: Advanced Features
-- [ ] NFT integration
-- [ ] Advanced analytics
-- [ ] Mobile application
-- [ ] Governance token ($UPOOL)
-- [ ] DAO structure
+### Phase 2: Enhanced Platform (Q3-Q4 2025)
+**AI Integration & Advanced Social Features**
+- [ ] Advanced Farcaster Frames with voting and milestone tracking
+- [ ] Deep Farcaster social graph analysis for enhanced trust scoring
+- [ ] Channel-based pool communities within Farcaster ecosystem
+- [ ] Professional verifier network and certification system
+- [ ] AI-powered milestone validation and fraud detection
+- [ ] Comprehensive trust scoring with Talent Protocol + Farcaster integration
+- [ ] Enhanced TikTok-style discovery feed with social graph recommendations
+- [ ] ROI tracking dashboard for investors
+- [ ] NFT marketplace and auction integration
+- [ ] Multi-channel notification system including Farcaster casts
+- [ ] Advanced pool analytics and reporting with social metrics
 
-### Phase 4: Scale & Optimize
-- [ ] Multi-chain support
-- [ ] Enterprise features
-- [ ] Advanced AI features
-- [ ] Institutional partnerships
+**Target Metrics**: 1,000 active users, 100 active pools, $500K TVL
+
+### Phase 3: Governance & Scaling (Q1-Q2 2026)
+**Decentralization & Community Growth**
+- [ ] $UPOOL governance token launch and distribution
+- [ ] DAO-based moderation and dispute resolution
+- [ ] Staking mechanisms with yield boosting rewards
+- [ ] Advanced penalty and slashing systems
+- [ ] Cross-chain expansion (Ethereum, Polygon, Arbitrum)
+- [ ] Mobile native applications (iOS/Android)
+- [ ] Enterprise features and partnership program
+- [ ] Advanced AI prediction and recommendation systems
+
+**Target Metrics**: 10,000 active users, 1,000 active pools, $5M TVL
+
+### Phase 4: Global Expansion (Q3-Q4 2026)
+**Mass Adoption & Innovation**
+- [ ] Global compliance and regulatory framework implementation
+- [ ] Fiat on/off ramps and traditional banking integration
+- [ ] Institutional investor features and accreditation systems
+- [ ] Social media platform integrations (Twitter, Discord, Telegram)
+- [ ] Corporate team funding and innovation management tools
+- [ ] Educational content platform and certification programs
+- [ ] Community-driven feature development and governance
+- [ ] International expansion with localized support
+
+**Target Metrics**: 100,000 active users, 10,000 active pools, $50M TVL
 
 ---
 
