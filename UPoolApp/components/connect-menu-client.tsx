@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Wallet, LogOut, ChevronDown, SwitchCamera } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { truncateEthAddress } from "@/lib/utils"
-import { sdk } from "@farcaster/frame-sdk"
+import { sdk } from "@farcaster/miniapp-sdk"
 import {
   DropdownMenu,
   DropdownMenuContent,
