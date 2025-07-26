@@ -232,34 +232,31 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         
         console.log('📱 Environment detection context:', context)
         
-        // Check User Agent first for mobile detection (most reliable for mobile)
+        // Use official SDK method to detect if we're in a Mini App
+        const isInMiniApp = sdk.isInMiniApp
+        console.log('🎯 Official SDK detection - isInMiniApp:', isInMiniApp)
+        
+        // Fallback checks for additional verification
+        const hasSDKContext = !!(
+          context?.client?.clientFid ||  // Farcaster client
+          context?.isMinApp === true ||  // Explicit miniapp flag
+          context?.miniApp === true      // Alternative property name
+        )
+        
+        // User Agent fallback for older versions
         const isMobileFarcaster = typeof window !== 'undefined' && 
           window.navigator.userAgent.includes('FarcasterMobile')
         
-        // Check SDK context indicators
-        const isFarcasterFrame = !!(
-          context?.client?.clientFid ||  // Original check for Farcaster client
-          (context?.isMinApp === true) || // Explicit check for miniapp
-          context?.miniApp === true ||    // Alternative property name
-          context?.isMinApp === "true"    // String version check
-        )
-        
-        // Enhanced browser detection - exclude mobile Farcaster from this check
-        const isRegularBrowser = typeof window !== 'undefined' && 
-          window.parent === window && 
-          !window.location.href.includes('farcaster') &&
-          !isMobileFarcaster  // Don't treat mobile Farcaster as regular browser
-        
-        // Final determination - prioritize mobile detection
-        const finalIsFarcaster = isMobileFarcaster || (isFarcasterFrame && !isRegularBrowser)
+        // Final determination - prioritize official SDK method
+        const finalIsFarcaster = isInMiniApp || hasSDKContext || isMobileFarcaster
         
         console.log('🎯 Environment detection result:', {
+          officialSDK_isInMiniApp: isInMiniApp,
           contextExists: !!context,
           clientFid: context?.client?.clientFid,
           isMinApp: context?.isMinApp,
           miniApp: context?.miniApp,
-          isFarcasterFrame,
-          isRegularBrowser,
+          hasSDKContext,
           isMobileFarcaster,
           finalIsFarcaster,
           userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
@@ -271,11 +268,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('❌ Failed to get Farcaster context:', error)
         
-        // Fallback detection based on User Agent if SDK fails
+        // Fallback detection: try official SDK method first, then User Agent
+        try {
+          const isInMiniApp = sdk.isInMiniApp
+          console.log('📱 Fallback detection - SDK isInMiniApp:', isInMiniApp)
+          
+          if (isInMiniApp) {
+            setIsFarcaster(true)
+            return
+          }
+        } catch (sdkError) {
+          console.log('📱 SDK isInMiniApp also failed, trying User Agent')
+        }
+        
+        // Final fallback: User Agent detection
         const isMobileFarcaster = typeof window !== 'undefined' && 
           window.navigator.userAgent.includes('FarcasterMobile')
         
-        console.log('📱 Fallback detection - Mobile Farcaster:', isMobileFarcaster)
+        console.log('📱 Final fallback detection - Mobile Farcaster:', isMobileFarcaster)
         setIsFarcaster(isMobileFarcaster)
       }
     }
