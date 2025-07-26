@@ -36,7 +36,7 @@ export function StructuredData({ type = 'webapp' }: StructuredDataProps) {
     "name": "UPool",
     "description": "Social funding platform built on Base blockchain with Farcaster integration",
     "url": baseUrl,
-    "logo": `${baseUrl}/images/logo.png`,
+    "logo": `${baseUrl}/logo-seo.png`,
     "foundingDate": "2025",
     "founder": {
       "@type": "Organization",
@@ -72,7 +72,7 @@ export function StructuredData({ type = 'webapp' }: StructuredDataProps) {
       "name": "UPool Team"
     },
     "url": baseUrl,
-    "screenshot": `${baseUrl}/images/upool-screenshot.png`,
+    "screenshot": `${baseUrl}/logo-seo.png`,
     "softwareVersion": "1.0",
     "datePublished": "2025-01-26",
     "featureList": [
@@ -128,8 +128,8 @@ export function StructuredData({ type = 'webapp' }: StructuredDataProps) {
     ],
     "screenshot": {
       "@type": "ImageObject",
-      "url": `${baseUrl}/images/upool-app-screenshot.png`,
-      "caption": "UPool platform showing pool creation and management interface"
+      "url": `${baseUrl}/logo-seo.png`,
+      "caption": "UPool - Social Funding Platform Logo"
     }
   }
 
