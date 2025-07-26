@@ -27,14 +27,16 @@ function ConnectMenuContent() {
         <span className="text-sm text-gray-600">
           {truncateEthAddress(address)}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={disconnect}
-          className="text-red-500 hover:text-red-600"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
+        {!isFarcaster && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={disconnect}
+            className="text-red-500 hover:text-red-600"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     )
   }
