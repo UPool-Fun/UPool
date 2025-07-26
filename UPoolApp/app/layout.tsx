@@ -23,12 +23,95 @@ const frameMetadata = {
 }
 
 export const metadata: Metadata = {
-  title: 'UPool - Fund together. Grow together. Go further.',
-  description:
-    'Pool funds with your community, earn yield on idle capital, and unlock funds based on milestones.',
+  title: {
+    default: 'UPool - Social Funding Platform | Pool Funds, Earn Yield, Achieve Goals',
+    template: '%s | UPool - Social Funding Platform'
+  },
+  description: 'Create funding pools with friends and communities on Base blockchain. Pool funds together, earn DeFi yield through Morpho Protocol, and unlock money based on milestone achievements. Built as a native Farcaster Mini App.',
+  keywords: [
+    'social funding',
+    'cryptocurrency pool',
+    'DeFi yield farming',
+    'Base blockchain',
+    'Farcaster Mini App',
+    'community funding',
+    'milestone-based funding',
+    'crypto savings',
+    'blockchain crowdfunding',
+    'Web3 social',
+    'Morpho Protocol',
+    'group savings',
+    'collaborative finance',
+    'decentralized funding',
+    'crypto community'
+  ],
+  authors: [{ name: 'UPool Team', url: 'https://upool.fun' }],
+  creator: 'UPool Team',
+  publisher: 'UPool',
   generator: 'UPool.fun',
+  applicationName: 'UPool',
+  referrer: 'origin-when-cross-origin',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: process.env.NEXT_PUBLIC_URL || 'https://upool.fun',
+    siteName: 'UPool',
+    title: 'UPool - Social Funding Platform | Pool Funds, Earn Yield, Achieve Goals',
+    description: 'Create funding pools with friends and communities. Pool funds, earn DeFi yield, and unlock money based on milestone achievements. Native Farcaster Mini App on Base blockchain.',
+    images: [
+      {
+        url: process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/images/upool-og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'UPool - Social Funding Platform',
+      },
+      {
+        url: process.env.NEXT_PUBLIC_SPLASH_IMAGE_URL || 'https://upool.fun/images/upool-splash.png',
+        width: 800,
+        height: 600,
+        alt: 'UPool Platform Preview',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'UPool - Social Funding Platform | Pool Funds, Earn Yield',
+    description: 'Create funding pools with friends and communities. Pool funds, earn DeFi yield, and unlock money based on milestone achievements.',
+    site: '@UPoolFun',
+    creator: '@UPoolFun',
+    images: [process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/images/upool-twitter-card.png'],
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.YANDEX_VERIFICATION,
+    yahoo: process.env.YAHOO_VERIFICATION,
+  },
+  category: 'Finance',
+  classification: 'Decentralized Finance, Social Finance, Blockchain Application',
   other: {
-    'fc:frame': JSON.stringify(frameMetadata)
+    'fc:frame': JSON.stringify(frameMetadata),
+    'theme-color': '#2998d0',
+    'color-scheme': 'light',
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'format-detection': 'telephone=no',
   }
 };
 

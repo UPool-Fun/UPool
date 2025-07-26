@@ -3,10 +3,29 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Users, TrendingUp, Shield, Zap } from "lucide-react"
 import Link from "next/link"
 import { Header } from "@/components/header"
+import { StructuredData } from "@/components/structured-data"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: 'UPool - Social Funding Platform | Pool Funds, Earn Yield Together',
+  description: 'Create funding pools with friends and communities on Base blockchain. Pool funds together, earn DeFi yield through Morpho Protocol, and unlock money based on milestone achievements. Native Farcaster Mini App.',
+  keywords: 'social funding, cryptocurrency pool, DeFi yield, Base blockchain, Farcaster Mini App, community funding, milestone funding, crypto savings, group savings, collaborative finance',
+  openGraph: {
+    title: 'UPool - Pool Funds, Earn Yield, Achieve Goals Together',
+    description: 'Join the social funding revolution. Create pools with friends, earn DeFi yield, and unlock funds through milestone achievements.',
+    type: 'website',
+    url: 'https://upool.fun',
+  },
+  twitter: {
+    title: 'UPool - Social Funding Platform | Pool Funds, Earn Yield',
+    description: 'Create funding pools with friends and communities. Pool funds, earn DeFi yield, and unlock money based on milestone achievements.',
+  },
+}
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
+      <StructuredData type="webapp" />
       <Header showCreateButton={true} showExploreButton={false} />
 
       {/* Hero Section */}
