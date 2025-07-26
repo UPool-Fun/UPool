@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 const frameMetadata = {
   version: "next",
-  imageUrl: process.env.NEXT_PUBLIC_IMAGE_URL || "https://upool.fun/images/logo.png",
+  imageUrl: process.env.NEXT_PUBLIC_IMAGE_URL || "https://upool.fun/logo-seo.png",
   aspectRatio: "3:2",
   button: {
     title: "UPool",
@@ -71,13 +71,13 @@ export const metadata: Metadata = {
     description: 'Create funding pools with friends and communities. Pool funds, earn DeFi yield, and unlock money based on milestone achievements. Native Farcaster Mini App on Base blockchain.',
     images: [
       {
-        url: process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/images/upool-og-image.png',
+        url: process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/logo-seo.png',
         width: 1200,
         height: 630,
         alt: 'UPool - Social Funding Platform',
       },
       {
-        url: process.env.NEXT_PUBLIC_SPLASH_IMAGE_URL || 'https://upool.fun/images/upool-splash.png',
+        url: process.env.NEXT_PUBLIC_SPLASH_IMAGE_URL || 'https://upool.fun/splash.png',
         width: 800,
         height: 600,
         alt: 'UPool Platform Preview',
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     description: 'Create funding pools with friends and communities. Pool funds, earn DeFi yield, and unlock money based on milestone achievements.',
     site: '@UPoolFun',
     creator: '@UPoolFun',
-    images: [process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/images/upool-twitter-card.png'],
+    images: [process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/logo-seo.png'],
   },
   viewport: {
     width: 'device-width',
