@@ -1,47 +1,22 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { 
-  DynamicContextProvider,
-  DynamicWidget,
-  useDynamicContext
-} from "@dynamic-labs/sdk-react-core"
-import { DynamicWagmiConnector } from "@dynamic-labs/wagmi-connector"
-import { createConfig, WagmiProvider, useAccount, useConnect, useDisconnect } from "wagmi"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { http } from "viem"
-import { base, baseSepolia } from "viem/chains"
-import { EthereumWalletConnectors } from "@dynamic-labs/ethereum"
-import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
+import { PrivyProvider, usePrivy } from '@privy-io/react-auth'
+import { WagmiProvider, useAccount, useConnect, useDisconnect } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { config } from '@/lib/wagmi'
 import { sdk } from '@farcaster/miniapp-sdk'
+import { SdkInitializer } from '@/components/sdk-initializer'
 
 // Environment detection
-const isFarcasterMiniApp = () => {
+const isFarcasterContext = () => {
   if (typeof window === 'undefined') return false
-  return window.location.href.includes('farcaster') || 
-         window.parent !== window || 
-         !!window.navigator.userAgent.match(/Farcaster/i)
+  try {
+    return !!window.parent && window.parent !== window
+  } catch {
+    return false
+  }
 }
-
-// Wagmi config for browser (Dynamic) - Base Sepolia for development
-const browserConfig = createConfig({
-  chains: [baseSepolia, base], // Sepolia first for development
-  multiInjectedProviderDiscovery: false,
-  transports: {
-    [baseSepolia.id]: http('https://sepolia.base.org'),
-    [base.id]: http('https://mainnet.base.org'),
-  },
-})
-
-// Wagmi config for Farcaster MiniApp - Base Sepolia for development
-const miniAppConfig = createConfig({
-  chains: [baseSepolia, base], // Sepolia first for development
-  connectors: [miniAppConnector()],
-  transports: {
-    [baseSepolia.id]: http('https://sepolia.base.org'),
-    [base.id]: http('https://mainnet.base.org'),
-  },
-})
 
 const queryClient = new QueryClient()
 
@@ -52,38 +27,39 @@ interface WalletContextType {
   connect: () => void
   disconnect: () => void
   isConnecting: boolean
-  isFarcasterMiniApp: boolean
+  isFarcaster: boolean
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
-// Browser wallet component (using Dynamic)
+// Browser wallet component (using Privy)
 function BrowserWalletProvider({ children }: { children: ReactNode }) {
-  const { user, isAuthenticated } = useDynamicContext()
+  const { login, logout, authenticated, user } = usePrivy()
   const [isConnecting, setIsConnecting] = useState(false)
 
-  const connect = async () => {
+  const connect = () => {
     setIsConnecting(true)
-    try {
-      // Dynamic handles the connection UI
-    } catch (error) {
-      console.error('Connection failed:', error)
-    } finally {
-      setIsConnecting(false)
-    }
+    login()
+      .then(() => {
+        setIsConnecting(false)
+      })
+      .catch((error) => {
+        console.error('Login failed:', error)
+        setIsConnecting(false)
+      })
   }
 
   const disconnect = () => {
-    // Dynamic handles disconnection
+    logout()
   }
 
   const contextValue: WalletContextType = {
-    isConnected: isAuthenticated,
-    address: user?.walletPublicKey,
+    isConnected: authenticated,
+    address: user?.wallet?.address,
     connect,
     disconnect,
     isConnecting,
-    isFarcasterMiniApp: false,
+    isFarcaster: false,
   }
 
   return (
@@ -93,16 +69,85 @@ function BrowserWalletProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// Farcaster MiniApp wallet component
-function MiniAppWalletProvider({ children }: { children: ReactNode }) {
-  const { address, isConnected } = useAccount()
-  const { connect: wagmiConnect, connectors, isPending } = useConnect()
-  const { disconnect } = useDisconnect()
+// Farcaster Frame wallet component
+function FarcasterWalletProvider({ children }: { children: ReactNode }) {
+  const [isConnected, setIsConnected] = useState(false)
+  const [address, setAddress] = useState<string | undefined>(undefined)
+  const [isConnecting, setIsConnecting] = useState(false)
 
-  const connect = () => {
-    const miniAppConnector = connectors.find(c => c.id === 'farcasterMiniApp')
-    if (miniAppConnector) {
-      wagmiConnect({ connector: miniAppConnector })
+  // Check if user is already authenticated on mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const context = await sdk.context
+        console.log('FarcasterWalletProvider: Initial context check:', context)
+        
+        if (context?.user) {
+          console.log('FarcasterWalletProvider: User already authenticated')
+          setIsConnected(true)
+          
+          // Use FID as identifier for Quick Auth
+          const fid = context.user.fid
+          if (fid) {
+            setAddress(`farcaster:${fid}`)
+            console.log('FarcasterWalletProvider: Found existing Farcaster ID:', fid)
+          }
+        }
+      } catch (error) {
+        console.error('FarcasterWalletProvider: Initial auth check error:', error)
+      }
+    }
+
+    checkAuthStatus()
+  }, [])
+
+  const connect = async () => {
+    try {
+      console.log('FarcasterWalletProvider: Starting Quick Auth process')
+      setIsConnecting(true)
+      
+      // Use Farcaster Quick Auth
+      const result = await sdk.actions.signIn()
+      console.log('FarcasterWalletProvider: Quick Auth result:', result)
+      
+      if (result && result.isLoggedIn) {
+        console.log('FarcasterWalletProvider: Successfully authenticated with Farcaster')
+        setIsConnected(true)
+        
+        // For Quick Auth, we might not get a wallet address directly
+        // The user is authenticated with their Farcaster identity
+        // We can use their FID as a unique identifier
+        const context = await sdk.context
+        console.log('FarcasterWalletProvider: Context after auth:', context)
+        
+        // Set a placeholder address or use FID-based identifier
+        const fid = context?.user?.fid || result.fid
+        if (fid) {
+          // Use FID as identifier (not a real wallet address)
+          setAddress(`farcaster:${fid}`)
+          console.log('FarcasterWalletProvider: Set Farcaster ID:', fid)
+        } else {
+          // Fallback to just marking as connected without address
+          console.log('FarcasterWalletProvider: Connected without specific address')
+        }
+      } else {
+        console.log('FarcasterWalletProvider: Quick Auth failed or cancelled')
+      }
+    } catch (error) {
+      console.error('FarcasterWalletProvider: Quick Auth error:', error)
+    } finally {
+      setIsConnecting(false)
+    }
+  }
+
+  const disconnect = async () => {
+    try {
+      console.log('FarcasterWalletProvider: Disconnecting')
+      // Reset local state
+      setIsConnected(false)
+      setAddress(undefined)
+    } catch (error) {
+      console.error('FarcasterWalletProvider: Disconnect error:', error)
     }
   }
 
@@ -111,19 +156,20 @@ function MiniAppWalletProvider({ children }: { children: ReactNode }) {
     address,
     connect,
     disconnect,
-    isConnecting: isPending,
-    isFarcasterMiniApp: true,
+    isConnecting,
+    isFarcaster: true,
   }
 
-  // Call ready() for Farcaster MiniApps
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      sdk.actions.ready()
-    }
-  }, [])
+  // Log connection state for debugging
+  console.log('FarcasterWalletProvider state:', {
+    isConnected,
+    address,
+    isConnecting
+  })
 
   return (
     <WalletContext.Provider value={contextValue}>
+      <SdkInitializer />
       {children}
     </WalletContext.Provider>
   )
@@ -131,14 +177,52 @@ function MiniAppWalletProvider({ children }: { children: ReactNode }) {
 
 // Main wallet provider that switches based on environment
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [isMiniApp, setIsMiniApp] = useState(false)
+  const [isFarcaster, setIsFarcaster] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    const checkFarcasterContext = async () => {
+      try {
+        const context = await sdk.context
+        console.log('🔍 Environment detection context:', context)
+        
+        // Check multiple indicators that we're in a Farcaster environment
+        // Be more specific about Farcaster detection to avoid false positives
+        const isFarcasterFrame = !!(
+          context?.client?.clientFid ||  // Original check for Farcaster client
+          (context?.isMinApp === true) || // Explicit check for miniapp
+          context?.miniApp === true      // Alternative property name
+        )
+        
+        // Additional check: if we're in a regular browser (not in iframe/frame), it's NOT Farcaster
+        const isRegularBrowser = typeof window !== 'undefined' && 
+          window.parent === window && 
+          !window.location.href.includes('farcaster')
+        
+        // Final determination: only Farcaster if we have positive indicators AND not in regular browser
+        const finalIsFarcaster = isFarcasterFrame && !isRegularBrowser
+        
+        console.log('🎯 Environment detection result:', {
+          contextExists: !!context,
+          clientFid: context?.client?.clientFid,
+          isMinApp: context?.isMinApp,
+          miniApp: context?.miniApp,
+          isFarcasterFrame,
+          isRegularBrowser,
+          finalIsFarcaster,
+          href: typeof window !== 'undefined' ? window.location.href : 'SSR',
+          windowParent: typeof window !== 'undefined' ? (window.parent === window ? 'same' : 'different') : 'SSR'
+        })
+        
+        setIsFarcaster(finalIsFarcaster)
+      } catch (error) {
+        console.error('Failed to get Farcaster context:', error)
+        setIsFarcaster(false)
+      }
+    }
+
     setMounted(true)
-    const isMinApp = isFarcasterMiniApp()
-    console.log('Environment detection:', { isMinApp, href: window?.location?.href })
-    setIsMiniApp(isMinApp)
+    checkFarcasterContext()
   }, [])
 
   // Show loading during hydration
@@ -146,41 +230,45 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     return <div>{children}</div>
   }
 
-  if (isMiniApp) {
-    // Farcaster MiniApp mode
-    console.log('Using Farcaster MiniApp mode')
+  if (isFarcaster) {
+    // Farcaster Frame mode
+    console.log('🟣 Using Farcaster MiniApp mode')
     return (
-      <WagmiProvider config={miniAppConfig}>
+      <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <MiniAppWalletProvider>
+          <FarcasterWalletProvider>
             {children}
-          </MiniAppWalletProvider>
+          </FarcasterWalletProvider>
         </QueryClientProvider>
       </WagmiProvider>
     )
   }
 
-  // Browser mode with Dynamic
-  console.log('Using Browser mode with Dynamic', process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID)
+  // Browser mode with Privy
+  console.log('🌐 Using Browser mode with Privy')
   return (
-    <DynamicContextProvider
-      settings={{
-        environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID || "061ea13d-b5dd-420f-8def-07ecd7ad207f",
-        walletConnectors: [EthereumWalletConnectors],
-        appName: "UPool",
-        appLogoUrl: "/logo.png",
+    <PrivyProvider
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+      config={{
+        appearance: {
+          theme: 'light',
+          accentColor: '#8B5CF6',
+          logo: '/logo.svg',
+        },
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets',
+        },
+        defaultChain: config.chains[0],
       }}
     >
-      <WagmiProvider config={browserConfig}>
+      <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <DynamicWagmiConnector>
-            <BrowserWalletProvider>
-              {children}
-            </BrowserWalletProvider>
-          </DynamicWagmiConnector>
+          <BrowserWalletProvider>
+            {children}
+          </BrowserWalletProvider>
         </QueryClientProvider>
       </WagmiProvider>
-    </DynamicContextProvider>
+    </PrivyProvider>
   )
 }
 
@@ -193,70 +281,3 @@ export function useWallet(): WalletContextType {
   return context
 }
 
-// Wallet connection button component
-export function WalletConnectButton() {
-  const [mounted, setMounted] = useState(false)
-  
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Show loading state during hydration
-  if (!mounted) {
-    return (
-      <button className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg animate-pulse">
-        Loading...
-      </button>
-    )
-  }
-
-  try {
-    const { isConnected, address, connect, disconnect, isConnecting, isFarcasterMiniApp } = useWallet()
-    
-    console.log('WalletConnectButton state:', { isConnected, address, isConnecting, isFarcasterMiniApp })
-
-    if (isConnected && address) {
-      return (
-        <div className="flex items-center space-x-3">
-          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-800 border-green-200">
-            <span className="mr-1">🔵</span>
-            Base Sepolia
-          </div>
-          <span className="text-sm text-gray-600">
-            {address.slice(0, 6)}...{address.slice(-4)}
-          </span>
-          <button
-            onClick={disconnect}
-            className="text-sm text-red-600 hover:text-red-700"
-          >
-            Disconnect
-          </button>
-        </div>
-      )
-    }
-
-    if (isFarcasterMiniApp) {
-      return (
-        <button
-          onClick={connect}
-          disabled={isConnecting}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-        </button>
-      )
-    }
-
-    // For browser mode, use Dynamic's built-in widget
-    console.log('Rendering DynamicWidget')
-    return <DynamicWidget />
-  } catch (error) {
-    // Fallback if wallet context isn't available
-    console.error('WalletConnectButton error:', error)
-    return (
-      <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-        Connect Wallet (Fallback)
-      </button>
-    )
-  }
-}

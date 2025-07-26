@@ -1,0 +1,27 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjExMzk5OTgsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg2QjdCRkFlNEVCMkI2YjU2NjM2OGZhYkRjMTY1N0QwNWE2Yjc0MUVlIn0",
+    "payload": "eyJkb21haW4iOiJjb2RhbGFicy5uZ3Jvay5pbyJ9",
+    "signature": "MHgyYTAwNjVmYjc1ZWVlZmNiYjVkYjliZjY1YTA3YjBmOTU1ZmUwMjc0ZmYyM2ZjYzQxYTNjNjRiMGUxZmRlM2I4M2EyMTdlMTBmM2E5ZTdmM2U3ODc1ZTNjNjQ0Mzg3MmY5YWJhMzIwZTJhZTJiNWQ5ZTBmZjVkYjM5MjQ4MWY2ZDFj"
+  },
+  "frame": {
+    "name": "UPool",
+    "version": "1",
+    "iconUrl": "https://upool.fun/icon.png",
+    "homeUrl": "https://upool.fun",
+    "tags": [
+      "social",
+      "defi",
+      "community"
+    ],
+    "tagline": "UPool lets groups fund goals",
+    "buttonTitle": "Lets Pool",
+    "ogTitle": "UPool",
+    "webhookUrl": "https://upool.fun/api/webhook",
+    "splashBackgroundColor": "#2998d0",
+    "splashImageUrl": "https://upool.fun/splash.png",
+    "primaryCategory": "finance",
+    "description": "UPool is a social app that lets friends and communities pool money, grow it with yield, and unlock it through milestone-based voting and trust.",
+    "subtitle": "Fund it. Prove it. Unlock it.",
+    "heroImageUrl": "https://upool.fun/hero.png"
+  }}

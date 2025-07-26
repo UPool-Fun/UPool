@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { WalletConnectButton } from "./providers/wallet-provider"
+import { ConnectMenuSimple } from "./connect-menu-simple"
 
 interface HeaderProps {
   showCreateButton?: boolean
@@ -60,13 +60,13 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
             {showCreateButton && (
               <Link href="/create">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  Create Pool
+                  Create Pool *
                 </button>
               </Link>
             )}
 
-            {/* Wallet Connection - Dynamic based on environment */}
-            <WalletConnectButton />
+            {/* Wallet Connection - Environment aware */}
+            <ConnectMenuSimple />
           </div>
         </nav>
       </div>
