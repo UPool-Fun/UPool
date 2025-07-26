@@ -106,8 +106,17 @@ function FarcasterWalletProvider({ children }: { children: ReactNode }) {
       console.log('FarcasterWalletProvider: Starting Quick Auth process')
       setIsConnecting(true)
       
-      // Use Farcaster Quick Auth
-      const result = await sdk.actions.signIn()
+      // Add timeout for mobile compatibility
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Quick Auth timeout')), 10000)
+      })
+      
+      // Use Farcaster Quick Auth with timeout
+      const result = await Promise.race([
+        sdk.actions.signIn(),
+        timeoutPromise
+      ])
+      
       console.log('FarcasterWalletProvider: Quick Auth result:', result)
       
       if (result && result.isLoggedIn) {
@@ -117,24 +126,50 @@ function FarcasterWalletProvider({ children }: { children: ReactNode }) {
         // For Quick Auth, we might not get a wallet address directly
         // The user is authenticated with their Farcaster identity
         // We can use their FID as a unique identifier
-        const context = await sdk.context
-        console.log('FarcasterWalletProvider: Context after auth:', context)
-        
-        // Set a placeholder address or use FID-based identifier
-        const fid = context?.user?.fid || result.fid
-        if (fid) {
-          // Use FID as identifier (not a real wallet address)
+        try {
+          const contextPromise = sdk.context
+          const contextTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Context timeout')), 3000)
+          })
+          
+          const context = await Promise.race([contextPromise, contextTimeout])
+          console.log('FarcasterWalletProvider: Context after auth:', context)
+          
+          // Set a placeholder address or use FID-based identifier
+          const fid = context?.user?.fid || result.fid
+          if (fid) {
+            // Use FID as identifier (not a real wallet address)
+            setAddress(`farcaster:${fid}`)
+            console.log('FarcasterWalletProvider: Set Farcaster ID:', fid)
+          } else {
+            // Fallback to just marking as connected without address
+            console.log('FarcasterWalletProvider: Connected without specific address')
+          }
+        } catch (contextError) {
+          console.error('FarcasterWalletProvider: Context error:', contextError)
+          // Still mark as connected even if context fails
+          const fid = result.fid || 'unknown'
           setAddress(`farcaster:${fid}`)
-          console.log('FarcasterWalletProvider: Set Farcaster ID:', fid)
-        } else {
-          // Fallback to just marking as connected without address
-          console.log('FarcasterWalletProvider: Connected without specific address')
+          console.log('FarcasterWalletProvider: Fallback connection with FID:', fid)
         }
       } else {
         console.log('FarcasterWalletProvider: Quick Auth failed or cancelled')
       }
     } catch (error) {
       console.error('FarcasterWalletProvider: Quick Auth error:', error)
+      
+      // On mobile, sometimes the auth might work but throw an error
+      // Try to get context anyway to see if user is actually logged in
+      try {
+        const context = await sdk.context
+        if (context?.user?.fid) {
+          console.log('FarcasterWalletProvider: Found user despite error, proceeding')
+          setIsConnected(true)
+          setAddress(`farcaster:${context.user.fid}`)
+        }
+      } catch (fallbackError) {
+        console.error('FarcasterWalletProvider: Fallback check failed:', fallbackError)
+      }
     } finally {
       setIsConnecting(false)
     }
@@ -183,24 +218,40 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkFarcasterContext = async () => {
       try {
-        const context = await sdk.context
-        console.log('🔍 Environment detection context:', context)
+        console.log('🔍 Starting environment detection...')
+        
+        // Add timeout to prevent hanging on mobile
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Context timeout')), 3000)
+        })
+        
+        const context = await Promise.race([
+          sdk.context,
+          timeoutPromise
+        ])
+        
+        console.log('📱 Environment detection context:', context)
         
         // Check multiple indicators that we're in a Farcaster environment
-        // Be more specific about Farcaster detection to avoid false positives
         const isFarcasterFrame = !!(
           context?.client?.clientFid ||  // Original check for Farcaster client
           (context?.isMinApp === true) || // Explicit check for miniapp
-          context?.miniApp === true      // Alternative property name
+          context?.miniApp === true ||    // Alternative property name
+          context?.isMinApp === "true"    // String version check
         )
         
-        // Additional check: if we're in a regular browser (not in iframe/frame), it's NOT Farcaster
+        // Enhanced browser detection for mobile
         const isRegularBrowser = typeof window !== 'undefined' && 
           window.parent === window && 
-          !window.location.href.includes('farcaster')
+          !window.location.href.includes('farcaster') &&
+          !window.navigator.userAgent.includes('FarcasterMobile')
         
-        // Final determination: only Farcaster if we have positive indicators AND not in regular browser
-        const finalIsFarcaster = isFarcasterFrame && !isRegularBrowser
+        // Check User Agent for additional mobile detection
+        const isMobileFarcaster = typeof window !== 'undefined' && 
+          window.navigator.userAgent.includes('FarcasterMobile')
+        
+        // Final determination with mobile support
+        const finalIsFarcaster = (isFarcasterFrame && !isRegularBrowser) || isMobileFarcaster
         
         console.log('🎯 Environment detection result:', {
           contextExists: !!context,
@@ -209,20 +260,32 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           miniApp: context?.miniApp,
           isFarcasterFrame,
           isRegularBrowser,
+          isMobileFarcaster,
           finalIsFarcaster,
+          userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
           href: typeof window !== 'undefined' ? window.location.href : 'SSR',
           windowParent: typeof window !== 'undefined' ? (window.parent === window ? 'same' : 'different') : 'SSR'
         })
         
         setIsFarcaster(finalIsFarcaster)
       } catch (error) {
-        console.error('Failed to get Farcaster context:', error)
-        setIsFarcaster(false)
+        console.error('❌ Failed to get Farcaster context:', error)
+        
+        // Fallback detection based on User Agent if SDK fails
+        const isMobileFarcaster = typeof window !== 'undefined' && 
+          window.navigator.userAgent.includes('FarcasterMobile')
+        
+        console.log('📱 Fallback detection - Mobile Farcaster:', isMobileFarcaster)
+        setIsFarcaster(isMobileFarcaster)
       }
     }
 
     setMounted(true)
-    checkFarcasterContext()
+    
+    // Add delay for mobile compatibility
+    const timer = setTimeout(checkFarcasterContext, 200)
+    
+    return () => clearTimeout(timer)
   }, [])
 
   // Show loading during hydration
