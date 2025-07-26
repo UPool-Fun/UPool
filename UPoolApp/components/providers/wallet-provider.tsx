@@ -89,7 +89,7 @@ function FarcasterWalletProvider({ children }: { children: ReactNode }) {
           // Use FID as identifier for Quick Auth
           const fid = context.user.fid
           if (fid) {
-            setAddress(`farcaster:${fid}`)
+            setAddress(`fid:${fid}`)
             console.log('FarcasterWalletProvider: Found existing Farcaster ID:', fid)
           }
         }
