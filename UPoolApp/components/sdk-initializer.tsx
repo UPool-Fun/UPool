@@ -63,21 +63,26 @@ export function SdkInitializer() {
           throw contextError
         }
 
-        // Step 2: Check if we're in Farcaster environment
+        // Step 2: Check if we're in Farcaster environment using official SDK method
         setStep('validating-environment')
-        const isFarcasterEnv = !!(
+        const isInMiniApp = sdk.isInMiniApp
+        const hasContext = !!(
           context?.client?.clientFid ||
           context?.isMinApp ||
-          context?.miniApp ||
-          navigator.userAgent.includes('FarcasterMobile')
+          context?.miniApp
         )
+        const userAgentCheck = navigator.userAgent.includes('FarcasterMobile')
+        
+        const isFarcasterEnv = isInMiniApp || hasContext || userAgentCheck
         
         logWithTimestamp("🔍 SDK INITIALIZATION: Environment validation", {
-          isFarcasterEnv,
+          officialSDK_isInMiniApp: isInMiniApp,
+          hasContext,
           clientFid: context?.client?.clientFid,
           isMinApp: context?.isMinApp,
           miniApp: context?.miniApp,
-          userAgentCheck: navigator.userAgent.includes('FarcasterMobile')
+          userAgentCheck,
+          finalResult: isFarcasterEnv
         })
 
         if (isFarcasterEnv) {
