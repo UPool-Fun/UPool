@@ -1,8 +1,8 @@
 {
   "accountAssociation": {
     "header": "eyJmaWQiOjExMzk5OTgsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg2QjdCRkFlNEVCMkI2YjU2NjM2OGZhYkRjMTY1N0QwNWE2Yjc0MUVlIn0",
-    "payload": "eyJkb21haW4iOiJjb2RhbGFicy5uZ3Jvay5pbyJ9",
-    "signature": "MHgyYTAwNjVmYjc1ZWVlZmNiYjVkYjliZjY1YTA3YjBmOTU1ZmUwMjc0ZmYyM2ZjYzQxYTNjNjRiMGUxZmRlM2I4M2EyMTdlMTBmM2E5ZTdmM2U3ODc1ZTNjNjQ0Mzg3MmY5YWJhMzIwZTJhZTJiNWQ5ZTBmZjVkYjM5MjQ4MWY2ZDFj"
+    "payload": "eyJkb21haW4iOiJ1cG9vbC5mdW4ifQ",
+    "signature": "MHhkOTIzZjg0NTg2OTc1MTRhZDBhMmU3OTRjYjhiOWMyZTIzZDhmOTY4MDA0Y2Q2OTk1ZDZkMGEwZDU4MzZmYzgzNzM0YTMxNWZiNmIwMWM2YTY3ODUyMjI3MTA3YjBkY2Y3YTRhNjc1YmNkZGFhMDZlNGMyZGJlMmY0YzI1ZTg5ZjFj"
   },
   "frame": {
     "name": "UPool",
