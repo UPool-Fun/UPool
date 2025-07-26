@@ -186,13 +186,13 @@ export default function LandingPage() {
               <span className="font-semibold text-gray-900">UPool</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-gray-600">
-              <Link href="#" className="hover:text-blue-600 transition-colors">
+              <Link href="/privacy" className="hover:text-blue-600 transition-colors">
                 Privacy
               </Link>
-              <Link href="#" className="hover:text-blue-600 transition-colors">
+              <Link href="/terms" className="hover:text-blue-600 transition-colors">
                 Terms
               </Link>
-              <Link href="#" className="hover:text-blue-600 transition-colors">
+              <Link href="/support" className="hover:text-blue-600 transition-colors">
                 Support
               </Link>
             </div>
