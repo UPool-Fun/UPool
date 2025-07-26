@@ -780,13 +780,15 @@ UPool/
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + shadcn/ui
 - **State**: React hooks + Context API
+- **Wallet Integration**: Dual-environment system with Privy (browser) + Farcaster Quick Auth (mobile)
 
 ### Blockchain  
 - **Network**: Base (Ethereum L2)
 - **Contracts**: Solidity smart contracts
 - **Yield**: Base Agent Kit AI + Morpho Protocol + Base OnchainKit
-- **Social Layer**: Minikit + Farcaster SDK for native social integration
+- **Social Layer**: Minikit + Farcaster SDK with official `sdk.isInMiniApp` detection
 - **Storage**: IPFS for documents and metadata
+- **Wallet Support**: MetaMask, Coinbase Wallet, WalletConnect, Privy embedded wallets, Farcaster identity
 
 ### Backend Services
 - **API**: Node.js with Express/Fastify
@@ -815,21 +817,24 @@ UPool/
 
 ## 📈 Roadmap
 
-### Phase 1: MVP Foundation (Q1-Q2 2025)
+### Phase 1: MVP Foundation (Q1-Q2 2025) ✅ **COMPLETED**
 **Core Platform Establishment**
 - [x] Project architecture and comprehensive documentation
 - [x] Frontend application foundation with Next.js and TypeScript
 - [x] Complete UI component library with shadcn/ui
 - [x] Detailed role definitions and workflow processes
-- [ ] Minikit integration for Farcaster Mini App experience
-- [ ] Basic Farcaster Frames for pool sharing and discovery
+- [x] **Farcaster Mini App Integration**: Full Minikit + SDK integration with `sdk.isInMiniApp` detection
+- [x] **Dual Environment Wallet System**: Seamless Privy (browser) + Farcaster Quick Auth (mobile) integration
+- [x] **Frame Metadata Implementation**: Proper Farcaster Frame metadata for Mini App functionality
+- [x] **Environment Detection**: Robust mobile/desktop detection using official SDK methods
+- [x] **Webhook Infrastructure**: Complete webhook system for Farcaster notifications
+- [x] **Mobile Optimization**: iPhone Farcaster app compatibility with splash screen fix
 - [ ] Smart contract development and deployment
 - [ ] Basic pool creation with milestone system
-- [ ] Farcaster + wallet integration and social login
 - [ ] AI-optimized Morpho lending implementation with Base Agent Kit
 - [ ] Basic voting and approval mechanisms
 
-**Target Metrics**: 100 beta users, 10 active pools, $50K TVL
+**Current Status**: Ready for smart contract integration and pool creation features
 
 ### Phase 2: Enhanced Platform (Q3-Q4 2025)
 **AI Integration & Advanced Social Features**
