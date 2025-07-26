@@ -39,9 +39,10 @@ UPool/
 - **Purpose:** Reference implementation for UPoolApp integration
 - **Structure:** Similar Next.js setup with business logic components
 
-### Key Dependencies
-- **Social Integration:** @farcaster/minikit + @farcaster/core for native Farcaster experience
-- **Frames:** @farcaster/frames for interactive sharing and discovery
+### Key Dependencies  
+- **Wallet Integration:** Dual environment system with Privy (@privy-io/react-auth) for browser + Farcaster Quick Auth for mini app
+- **Social Integration:** @farcaster/miniapp-sdk for Farcaster Mini App experience (upgraded from deprecated frame-sdk)
+- **Blockchain:** Wagmi 2.16.0 + Viem for Web3 interactions on Base network
 - **UI Library:** Complete Radix UI ecosystem (dialogs, forms, navigation, etc.)
 - **Form Handling:** react-hook-form + @hookform/resolvers + zod
 - **Styling Utils:** clsx, tailwind-merge, class-variance-authority
@@ -76,6 +77,9 @@ npm run lint
 ### Components Architecture
 - `components/ui/` - Reusable UI primitives (buttons, forms, dialogs, etc.)
 - `components/` - Business logic components:
+  - `providers/wallet-provider.tsx` - Unified wallet context with dual environment detection
+  - `connect-menu-simple.tsx` - Environment-aware wallet connection component
+  - `sdk-initializer.tsx` - Farcaster SDK initialization component
   - `farcaster-minikit.tsx` - Minikit integration for Farcaster Mini App
   - `farcaster-frames.tsx` - Interactive Frames for sharing and discovery
   - `social-graph-trust.tsx` - Farcaster social graph analysis
@@ -142,14 +146,128 @@ npm run lint
 - Image optimization with Next.js Image
 - CSS-in-JS avoided in favor of Tailwind
 
-## Blockchain Integration (Planned)
-- **Network:** Base blockchain
-- **Social Layer:** Native Farcaster Mini App via Minikit integration
-- **Yield Strategy:** Base Agent Kit AI optimizes Morpho Protocol lending via Base OnchainKit
-- **Smart Contracts:** Solidity-based pool management
-- **Wallet Integration:** Minikit (Farcaster), Privy, Worldcoin ID support
-- **Storage:** IPFS for proofs and NFT metadata
-- **Viral Distribution:** Farcaster Frames for pool sharing and discovery
+## Blockchain Integration
+- **Network:** Base blockchain (Sepolia testnet for development)
+- **Social Layer:** Native Farcaster Mini App with Quick Auth integration
+- **Yield Strategy:** Base Agent Kit AI optimizes Morpho Protocol lending via Base OnchainKit (planned)
+- **Smart Contracts:** Solidity-based pool management (planned)
+- **Wallet Integration:** 
+  - **Browser**: Privy with embedded wallets and external wallet support
+  - **Farcaster**: Quick Auth with FID-based identity (farcaster:12345 format)
+- **Authentication Flow:**
+  - Environment detection via @farcaster/miniapp-sdk
+  - Unified `useWallet()` hook across both environments
+  - Seamless switching between Privy and Farcaster auth
+- **Storage:** IPFS for proofs and NFT metadata (planned)
+- **Viral Distribution:** Farcaster Frames for pool sharing and discovery (planned)
+
+## Wallet Integration Implementation
+
+### Architecture Overview
+UPoolApp implements a sophisticated dual-environment wallet system that seamlessly works as both a web application and a Farcaster Mini App.
+
+### Core Components
+
+#### 1. WalletProvider (`components/providers/wallet-provider.tsx`)
+- **Purpose**: Main context provider that detects environment and switches between authentication methods
+- **Environment Detection**: Uses @farcaster/miniapp-sdk to detect Farcaster context
+- **Browser Mode**: Wraps Privy provider for traditional web wallet connections
+- **Farcaster Mode**: Implements Quick Auth using sdk.actions.signIn()
+
+#### 2. ConnectMenuSimple (`components/connect-menu-simple.tsx`)
+- **Purpose**: Environment-aware wallet connection UI component
+- **Dynamic Rendering**: Shows different button text based on environment
+- **Unified Interface**: Uses single useWallet() hook regardless of environment
+
+#### 3. SDK Initializer (`components/sdk-initializer.tsx`)
+- **Purpose**: Initializes Farcaster SDK with sdk.actions.ready()
+- **Initialization**: Required for proper Farcaster Mini App functionality
+
+### Environment Detection Logic
+```typescript
+// Multi-factor detection for robust environment identification
+const isFarcasterFrame = !!(
+  context?.client?.clientFid ||  // Original Farcaster client check
+  context?.isMinApp === true ||  // Mini app specific flag
+  context?.miniApp === true      // Alternative property name
+)
+
+// Verify not in regular browser to avoid false positives
+const isRegularBrowser = typeof window !== 'undefined' && 
+  window.parent === window && 
+  !window.location.href.includes('farcaster')
+
+// Final determination
+const finalIsFarcaster = isFarcasterFrame && !isRegularBrowser
+```
+
+### Authentication Flows
+
+#### Browser Mode (Privy)
+1. User clicks "Connect Wallet" button
+2. Privy login modal opens with wallet options
+3. User connects via MetaMask, Coinbase Wallet, WalletConnect, etc.
+4. Wallet address stored in context
+5. Connected state shows truncated address
+
+#### Farcaster Mode (Quick Auth)
+1. User clicks "Connect Farcaster" button  
+2. sdk.actions.signIn() triggers Farcaster Quick Auth
+3. User authenticates with Farcaster identity
+4. FID (Farcaster ID) stored as identifier in format: `farcaster:12345`
+5. Connected state shows Farcaster identity
+
+### Unified Hook Interface
+```typescript
+interface WalletContextType {
+  isConnected: boolean
+  address: string | undefined  // Wallet address or farcaster:FID
+  connect: () => void          // Environment-specific connect function
+  disconnect: () => void       // Environment-specific disconnect function
+  isConnecting: boolean        // Loading state
+  isFarcaster: boolean         // Environment flag
+}
+
+// Usage in components
+const { connect, disconnect, isConnected, address, isFarcaster } = useWallet()
+```
+
+### Configuration Files
+
+#### Environment Variables (.env.local)
+```bash
+# Privy Configuration
+NEXT_PUBLIC_PRIVY_APP_ID=cmdj78523003jjo0lfaifpl8h
+
+# Base Network Configuration
+NEXT_PUBLIC_CHAIN_ID=84532  # Base Sepolia
+NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+
+# WalletConnect
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=197330eee747243ad7e57a45dd12aee8
+
+# Farcaster Manifest
+NEXT_PUBLIC_URL=https://codalabs.ngrok.io
+```
+
+#### Wagmi Configuration (lib/wagmi.ts)
+```typescript
+export const config = createConfig({
+  chains: [baseSepolia], // or base for mainnet
+  transports: { [baseSepolia.id]: http() },
+  connectors: [
+    injected({ shimDisconnect: true }),
+    walletConnect({ projectId, showQrModal: true })
+  ]
+})
+```
+
+### Migration from Dynamic Wallet
+UPoolApp was successfully migrated from Dynamic Wallet to this dual-environment system:
+- **Removed**: @dynamic-labs dependencies
+- **Added**: @privy-io/react-auth, @farcaster/miniapp-sdk
+- **Maintained**: Seamless user experience with improved Farcaster integration
+- **Enhanced**: Proper environment detection and unified wallet interface
 
 ## Morpho Protocol Integration
 
@@ -242,10 +360,18 @@ const handlePoolContribution = async () => {
 
 ## Farcaster Integration Patterns
 
-### Minikit Integration
-- Use `@farcaster/minikit` for wallet interactions within Farcaster clients
-- Implement seamless transaction signing without leaving the Farcaster app
-- Handle Minikit context and user authentication state
+### Mini App Manifest
+- **Location**: `/.well-known/farcaster.json` and `/api/manifest`
+- **Purpose**: Domain verification and app registration with Farcaster
+- **Features**: App discovery, user app list, webhook notifications
+- **Setup Guide**: See `FARCASTER_MANIFEST_SETUP.md`
+
+### Wallet Integration Architecture
+- **Dual Environment System**: Unified `useWallet()` hook for consistent interface
+- **Browser Mode**: Privy (@privy-io/react-auth) for standard web wallet connections
+- **Farcaster Mode**: Quick Auth via @farcaster/miniapp-sdk with FID-based identity
+- **Environment Detection**: Automatic detection based on SDK context and window properties
+- **Unified Context**: Single WalletProvider that switches between authentication methods seamlessly
 
 ### Farcaster Frames Development
 - Create interactive Frames for pool sharing using `@farcaster/frames`

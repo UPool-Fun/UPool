@@ -11,7 +11,7 @@ interface WalletConnectionProps {
 }
 
 export function WalletConnection({ onConnect, isConnecting = false }: WalletConnectionProps) {
-  const { isConnected, address, connect, isConnecting: walletConnecting, isFarcasterMiniApp } = useWallet()
+  const { isConnected, address, connect, isConnecting: walletConnecting, isFarcaster } = useWallet()
 
   // Handle successful connection
   useEffect(() => {
@@ -25,11 +25,11 @@ export function WalletConnection({ onConnect, isConnecting = false }: WalletConn
           builder: 0,
           overall: 0,
         },
-        isFarcasterMiniApp,
+        isFarcaster,
       }
       onConnect(userData)
     }
-  }, [isConnected, address, onConnect, isFarcasterMiniApp])
+  }, [isConnected, address, onConnect, isFarcaster])
 
   const handleConnect = () => {
     connect()
@@ -39,25 +39,25 @@ export function WalletConnection({ onConnect, isConnecting = false }: WalletConn
     <div className="space-y-4">
       <div className="text-center space-y-2">
         <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto">
-          {isFarcasterMiniApp ? (
+          {isFarcaster ? (
             <Smartphone className="w-8 h-8 text-white" />
           ) : (
             <Wallet className="w-8 h-8 text-white" />
           )}
         </div>
         <h3 className="text-lg font-semibold text-gray-900">
-          {isFarcasterMiniApp ? 'Connect your Farcaster wallet' : 'Choose your wallet'}
+          {isFarcaster ? 'Connect your Farcaster wallet' : 'Choose your wallet'}
         </h3>
         <p className="text-gray-600 text-sm">
-          {isFarcasterMiniApp 
+          {isFarcaster 
             ? 'Connect your wallet to join the pool and start earning yield'
             : 'Connect your wallet to join the pool and start earning yield'
           }
         </p>
       </div>
 
-      {isFarcasterMiniApp ? (
-        // Farcaster MiniApp - Simple connect button
+      {isFarcaster ? (
+        // Farcaster Frame - Simple connect button
         <Card
           className="cursor-pointer border-2 transition-colors hover:border-blue-200 border-blue-500 bg-blue-50"
           onClick={handleConnect}
@@ -76,7 +76,7 @@ export function WalletConnection({ onConnect, isConnecting = false }: WalletConn
           </CardContent>
         </Card>
       ) : (
-        // Browser - Dynamic widget will handle the wallet selection
+        // Browser - Privy will handle the wallet selection
         <div className="space-y-3">
           <Card
             className="cursor-pointer border-2 transition-colors hover:border-blue-200 border-blue-500 bg-blue-50"
@@ -86,7 +86,7 @@ export function WalletConnection({ onConnect, isConnecting = false }: WalletConn
               <div className="flex items-center space-x-3">
                 <span className="text-2xl">🔗</span>
                 <div>
-                  <h4 className="font-medium text-gray-900">Connect Wallet</h4>
+                  <h4 className="font-medium text-gray-900">Connect Wallet 7</h4>
                   <p className="text-sm text-gray-600">Choose from MetaMask, Coinbase Wallet, WalletConnect and more</p>
                 </div>
               </div>
@@ -104,7 +104,7 @@ export function WalletConnection({ onConnect, isConnecting = false }: WalletConn
           <div className="text-sm text-blue-800">
             <p className="font-medium">Secure & Private</p>
             <p>
-              {isFarcasterMiniApp 
+              {isFarcaster 
                 ? "Your Farcaster identity and social connections help build trust with pool members."
                 : "We'll verify your identity using ENS and Talent Protocol to build trust with other pool members."
               }

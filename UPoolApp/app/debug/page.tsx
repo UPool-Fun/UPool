@@ -1,7 +1,7 @@
 "use client"
 
 import { useWallet } from "@/components/providers/wallet-provider"
-import { DynamicWidget } from "@dynamic-labs/sdk-react-core"
+import { ConnectMenu } from "@/components/connect-menu"
 
 export default function DebugPage() {
   try {
@@ -19,17 +19,16 @@ export default function DebugPage() {
         <div className="bg-blue-50 p-4 rounded">
           <h2 className="font-semibold">Environment Variables:</h2>
           <pre>{JSON.stringify({
-            DYNAMIC_ENV_ID: process.env.NEXT_PUBLIC_DYNAMIC_ENV_ID,
+            PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
             CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
-            RPC_URL: process.env.NEXT_PUBLIC_RPC_URL,
-            NETWORK: process.env.NEXT_PUBLIC_NETWORK,
-            MAINNET_CHAIN_ID: process.env.NEXT_PUBLIC_MAINNET_CHAIN_ID,
+            WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+            SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
           }, null, 2)}</pre>
         </div>
         
         <div className="bg-green-50 p-4 rounded">
-          <h2 className="font-semibold">Direct Dynamic Widget:</h2>
-          <DynamicWidget />
+          <h2 className="font-semibold">Connect Menu:</h2>
+          <ConnectMenu />
         </div>
         
         <div className="bg-yellow-50 p-4 rounded">
