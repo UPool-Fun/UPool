@@ -3,12 +3,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Users, TrendingUp, Shield, Zap } from "lucide-react"
 import Link from "next/link"
 import { Header } from "@/components/header"
-import { FarcasterReadyFallback } from "@/components/farcaster-ready-fallback"
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      <FarcasterReadyFallback />
       <Header showCreateButton={true} showExploreButton={false} />
 
       {/* Hero Section */}
