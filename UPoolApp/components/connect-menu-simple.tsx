@@ -69,7 +69,7 @@ function ConnectMenuContent() {
       className="bg-violet-600 hover:bg-violet-700 text-white flex items-center gap-2"
     >
       <Wallet className="h-4 w-4" />
-      {isConnecting ? 'Connecting...' : (isFarcaster ? 'Connect Farcaster *' : 'Connect Privy *')}
+      {isConnecting ? 'Connecting...' : (isFarcaster ? 'Join' : 'Login')}
     </Button>
   )
 }
