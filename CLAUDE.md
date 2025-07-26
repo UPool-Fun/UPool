@@ -183,39 +183,42 @@ UPoolApp implements a sophisticated dual-environment wallet system that seamless
 - **Purpose**: Initializes Farcaster SDK with sdk.actions.ready()
 - **Initialization**: Required for proper Farcaster Mini App functionality
 
-### Environment Detection Logic
+### Environment Detection Logic ✅ **UPDATED - OFFICIAL SDK METHOD**
 ```typescript
-// Multi-factor detection for robust environment identification
-const isFarcasterFrame = !!(
-  context?.client?.clientFid ||  // Original Farcaster client check
-  context?.isMinApp === true ||  // Mini app specific flag
+// Uses official Farcaster SDK method (most reliable)
+const isInMiniApp = sdk.isInMiniApp  // Official SDK detection
+
+// Fallback checks for additional verification
+const hasSDKContext = !!(
+  context?.client?.clientFid ||  // Farcaster client
+  context?.isMinApp === true ||  // Explicit miniapp flag
   context?.miniApp === true      // Alternative property name
 )
 
-// Verify not in regular browser to avoid false positives
-const isRegularBrowser = typeof window !== 'undefined' && 
-  window.parent === window && 
-  !window.location.href.includes('farcaster')
+// User Agent fallback for older versions
+const isMobileFarcaster = typeof window !== 'undefined' && 
+  window.navigator.userAgent.includes('FarcasterMobile')
 
-// Final determination
-const finalIsFarcaster = isFarcasterFrame && !isRegularBrowser
+// Final determination - prioritize official SDK method
+const finalIsFarcaster = isInMiniApp || hasSDKContext || isMobileFarcaster
 ```
 
 ### Authentication Flows
 
 #### Browser Mode (Privy)
-1. User clicks "Connect Wallet" button
+1. User clicks "Login" button
 2. Privy login modal opens with wallet options
 3. User connects via MetaMask, Coinbase Wallet, WalletConnect, etc.
 4. Wallet address stored in context
 5. Connected state shows truncated address
 
-#### Farcaster Mode (Quick Auth)
-1. User clicks "Connect Farcaster" button  
+#### Farcaster Mode (Quick Auth) ✅ **WORKING ON ALL DEVICES**
+1. User clicks "Join" button (automatically detected as Farcaster environment)
 2. sdk.actions.signIn() triggers Farcaster Quick Auth
 3. User authenticates with Farcaster identity
 4. FID (Farcaster ID) stored as identifier in format: `farcaster:12345`
 5. Connected state shows Farcaster identity
+6. **Mobile Support**: Works on iPhone Farcaster app with splash screen handling
 
 ### Unified Hook Interface
 ```typescript
@@ -262,12 +265,47 @@ export const config = createConfig({
 })
 ```
 
-### Migration from Dynamic Wallet
+### Migration from Dynamic Wallet ✅ **COMPLETED SUCCESSFULLY**
 UPoolApp was successfully migrated from Dynamic Wallet to this dual-environment system:
-- **Removed**: @dynamic-labs dependencies
+- **Removed**: @dynamic-labs dependencies, deprecated @farcaster/frame-sdk
 - **Added**: @privy-io/react-auth, @farcaster/miniapp-sdk
 - **Maintained**: Seamless user experience with improved Farcaster integration
-- **Enhanced**: Proper environment detection and unified wallet interface
+- **Enhanced**: Official `sdk.isInMiniApp` detection, mobile compatibility, splash screen fixes
+
+### Testing Results ✅ **ALL ENVIRONMENTS WORKING**
+- **✅ Desktop Browser**: Shows "Login" button, connects via Privy
+- **✅ Farcaster Browser**: Shows "Join" button, connects via Quick Auth
+- **✅ iPhone Farcaster App**: Shows "Join" button, connects via Quick Auth (splash screen fixed)
+
+### Key Achievements
+1. **Robust Environment Detection**: Uses official Farcaster SDK methods
+2. **Mobile Compatibility**: Fixed iPhone splash screen hanging issue
+3. **Unified Interface**: Single `useWallet()` hook across all environments
+4. **Seamless UX**: Automatic environment detection with appropriate UI
+5. **Comprehensive Logging**: Detailed debugging for troubleshooting
+6. **Webhook Infrastructure**: Ready for Farcaster notifications
+
+### Troubleshooting Guide
+
+#### Environment Detection Issues
+1. **Check Console Logs**: Look for environment detection logs with `🎯` emoji
+2. **Verify SDK Method**: `sdk.isInMiniApp` should return boolean value
+3. **Fallback Checks**: User Agent should contain "FarcasterMobile" on mobile
+
+#### Splash Screen Issues (Mobile)
+1. **SDK Initialization**: Check for successful `sdk.actions.ready()` calls
+2. **Timeout Handling**: 3-second timeout should force progression
+3. **Multiple Attempts**: Fallback mechanisms trigger every 1s, 3s, 5s, 10s
+
+#### Button Text Problems
+- **Browser**: Should show "Login"
+- **Farcaster**: Should show "Join" 
+- **Debug**: Use `/debug` page to see detection results
+
+#### Webhook Testing
+- **GET /api/webhook**: Health check endpoint
+- **POST /api/webhook**: Receives Farcaster events
+- **Logs**: All webhook events logged with timestamps
 
 ## Morpho Protocol Integration
 
@@ -360,18 +398,19 @@ const handlePoolContribution = async () => {
 
 ## Farcaster Integration Patterns
 
-### Mini App Manifest
-- **Location**: `/.well-known/farcaster.json` and `/api/manifest`
+### Mini App Manifest ✅ **IMPLEMENTED**
+- **Location**: `/public/.well-known/farcaster.json` and `/api/manifest`
 - **Purpose**: Domain verification and app registration with Farcaster
 - **Features**: App discovery, user app list, webhook notifications
-- **Setup Guide**: See `FARCASTER_MANIFEST_SETUP.md`
+- **Webhook Endpoint**: `/api/webhook` for Farcaster events
 
-### Wallet Integration Architecture
+### Wallet Integration Architecture ✅ **FULLY WORKING**
 - **Dual Environment System**: Unified `useWallet()` hook for consistent interface
-- **Browser Mode**: Privy (@privy-io/react-auth) for standard web wallet connections
+- **Browser Mode**: Privy (@privy-io/react-auth) for standard web wallet connections  
 - **Farcaster Mode**: Quick Auth via @farcaster/miniapp-sdk with FID-based identity
-- **Environment Detection**: Automatic detection based on SDK context and window properties
+- **Environment Detection**: Official `sdk.isInMiniApp` method with fallbacks
 - **Unified Context**: Single WalletProvider that switches between authentication methods seamlessly
+- **Frame Metadata**: Proper metadata in app layout for Mini App functionality
 
 ### Farcaster Frames Development
 - Create interactive Frames for pool sharing using `@farcaster/frames`
