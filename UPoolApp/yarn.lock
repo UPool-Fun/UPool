@@ -435,17 +435,6 @@
     eventemitter3 "^5.0.1"
     ox "^0.4.4"
 
-"@farcaster/frame-sdk@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.npmjs.org/@farcaster/frame-sdk/-/frame-sdk-0.1.7.tgz"
-  integrity sha512-NcHBOn8mERDRDyHfHT8IMwKNOOMI+n/5WpOAYEZGteEDcYp8zRKmZEunmMXVvmHXd9Q7/8aQvwxngQMkSZ7/ww==
-  dependencies:
-    "@farcaster/miniapp-sdk" "0.1.7"
-    "@farcaster/quick-auth" "^0.0.6"
-    comlink "^4.4.2"
-    eventemitter3 "^5.0.1"
-    ox "^0.4.4"
-
 "@farcaster/frame-wagmi-connector@^0.0.53":
   version "0.0.53"
   resolved "https://registry.npmjs.org/@farcaster/frame-wagmi-connector/-/frame-wagmi-connector-0.0.53.tgz"
@@ -460,7 +449,7 @@
     ox "^0.4.4"
     zod "^3.25.0"
 
-"@farcaster/miniapp-sdk@^0.1.7", "@farcaster/miniapp-sdk@0.1.7":
+"@farcaster/miniapp-sdk@^0.1.7":
   version "0.1.7"
   resolved "https://registry.npmjs.org/@farcaster/miniapp-sdk/-/miniapp-sdk-0.1.7.tgz"
   integrity sha512-6Ph/mlGCOYLVm1+3ORHW3rIVEceWxvJIHWfHp2NbKAeobna11lAV1zx2fpEXu+HIKJ614fg+UjmlK9JORCRgEw==

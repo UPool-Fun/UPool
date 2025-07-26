@@ -11,7 +11,6 @@
   "dependencies": {
     "@coinbase/onchainkit": "^0.38.17",
     "@farcaster/core": "^0.18.5",
-    "@farcaster/frame-sdk": "^0.1.7",
     "@farcaster/miniapp-sdk": "^0.1.7",
     "@hookform/resolvers": "^3.9.1",
     "@privy-io/react-auth": "^2.20.0",
