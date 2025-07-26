@@ -232,7 +232,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         
         console.log('📱 Environment detection context:', context)
         
-        // Check multiple indicators that we're in a Farcaster environment
+        // Check User Agent first for mobile detection (most reliable for mobile)
+        const isMobileFarcaster = typeof window !== 'undefined' && 
+          window.navigator.userAgent.includes('FarcasterMobile')
+        
+        // Check SDK context indicators
         const isFarcasterFrame = !!(
           context?.client?.clientFid ||  // Original check for Farcaster client
           (context?.isMinApp === true) || // Explicit check for miniapp
@@ -240,18 +244,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           context?.isMinApp === "true"    // String version check
         )
         
-        // Enhanced browser detection for mobile
+        // Enhanced browser detection - exclude mobile Farcaster from this check
         const isRegularBrowser = typeof window !== 'undefined' && 
           window.parent === window && 
           !window.location.href.includes('farcaster') &&
-          !window.navigator.userAgent.includes('FarcasterMobile')
+          !isMobileFarcaster  // Don't treat mobile Farcaster as regular browser
         
-        // Check User Agent for additional mobile detection
-        const isMobileFarcaster = typeof window !== 'undefined' && 
-          window.navigator.userAgent.includes('FarcasterMobile')
-        
-        // Final determination with mobile support
-        const finalIsFarcaster = (isFarcasterFrame && !isRegularBrowser) || isMobileFarcaster
+        // Final determination - prioritize mobile detection
+        const finalIsFarcaster = isMobileFarcaster || (isFarcasterFrame && !isRegularBrowser)
         
         console.log('🎯 Environment detection result:', {
           contextExists: !!context,
