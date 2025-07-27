@@ -16,9 +16,9 @@ UPool is a revolutionary social funding platform built on the Base blockchain th
 ## 📱 Product Screenshots
 
 <div align="center">
-  <img src="./Documentation/Assets/landing.jpeg" alt="UPool Landing Page" height="450" style="margin: 0 10px;">
-  <img src="./Documentation/Assets/dashboard.jpeg" alt="UPool Dashboard" height="450" style="margin: 0 10px;">
-  <img src="./Documentation/Assets/searchpools.jpeg" alt="UPool Search Pools" height="450" style="margin: 0 10px;">
+  <img src="./Documentation/Assets/landing.jpeg" alt="UPool Landing Page" height="450" style="margin: 0 5px; border: 1px solid #4a4a4a;">
+  <img src="./Documentation/Assets/dashboard.jpeg" alt="UPool Dashboard" height="450" style="margin: 0 5px; border: 1px solid #4a4a4a;">
+  <img src="./Documentation/Assets/searchpools.jpeg" alt="UPool Search Pools" height="450" style="margin: 0 5px; border: 1px solid #4a4a4a;">
 </div>
 
 *From left to right: Native Farcaster Mini App landing page • User dashboard with active pools and yield tracking • Advanced pool discovery with social graph integration*
