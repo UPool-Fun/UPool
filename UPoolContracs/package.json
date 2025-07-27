@@ -1,0 +1,36 @@
+{
+  "name": "upoolcontracs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:gas": "REPORT_GAS=true hardhat test",
+    "coverage": "hardhat coverage",
+    "clean": "hardhat clean",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
+    "deploy:base": "hardhat run scripts/deploy.ts --network base",
+    "verify:base-sepolia": "hardhat verify --network baseSepolia",
+    "verify:base": "hardhat verify --network base",
+    "verify:blockscout-sepolia": "hardhat verify --network baseSepoliaBlockscout",
+    "verify:blockscout": "hardhat verify --network baseBlockscout",
+    "size": "hardhat size-contracts",
+    "lint": "prettier --check \"**/*.{js,ts,sol}\"",
+    "lint:fix": "prettier --write \"**/*.{js,ts,sol}\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@nomicfoundation/hardhat-verify": "^2.1.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^17.2.1",
+    "hardhat": "^2.26.1",
+    "hardhat-contract-sizer": "^2.10.0",
+    "prettier": "^3.6.2"
+  }
+}
