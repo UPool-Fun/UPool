@@ -2,10 +2,35 @@
 
 **Fund together. Grow together. Go further.**
 
-> **🏆 Competing in Base Onchain Summer: [Top New Mini Apps](https://onchain-summer-awards.devfolio.co/) Category**  
+> **🏆 Showcasing in Base Onchain Summer: [Top New Mini Apps](https://onchain-summer-awards.devfolio.co/) Category**  
 > Building the future of collaborative funding on Base blockchain with native Farcaster integration
 
 UPool is a revolutionary social funding platform built on the Base blockchain that enables friends, communities, and travelers to pool money toward shared goals, earn yield through DeFi strategies, and unlock funds based on milestone validation and community voting.
+
+## 🌐 Live Product Links
+
+- **Website/Base Mini App**: [https://upool.fun](https://upool.fun)
+- **Farcaster Mini App**: [https://farcaster.xyz/miniapps/5C3v3U4rSUDY/upool](https://farcaster.xyz/miniapps/5C3v3U4rSUDY/upool)
+- **Contact**: [contact@upool.fun](mailto:contact@upool.fun)
+
+## 📱 Product Screenshots
+
+### Landing Page
+<img src="./Documentation/Assets/landing.jpeg" alt="UPool Landing Page" style="max-height: 350px; width: auto;">
+
+*Native Farcaster Mini App landing page with seamless wallet integration*
+
+### Dashboard
+<img src="./Documentation/Assets/dashboard.jpeg" alt="UPool Dashboard" style="max-height: 350px; width: auto;">
+
+*User dashboard showing active pools, contributions, and yield tracking*
+
+### Pool Discovery
+<img src="./Documentation/Assets/searchpools.jpeg" alt="UPool Search Pools" style="max-height: 350px; width: auto;">
+
+*Advanced pool discovery with social graph integration and filtering*
+
+---
 
 Built as a native Farcaster Mini App using Minikit, UPool leverages the Farcaster social graph for trust-based pool discovery, viral sharing through Frames, and seamless wallet interactions within the Farcaster ecosystem.
 
@@ -1025,10 +1050,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Community
 
+- **Email**: [contact@upool.fun](mailto:contact@upool.fun) - Direct support and inquiries
+- **Website**: [https://upool.fun](https://upool.fun) - Live product and documentation
+- **Farcaster Mini App**: [UPool on Farcaster](https://farcaster.xyz/miniapps/5C3v3U4rSUDY/upool)
 - **GitHub Issues**: Bug reports and feature requests
 - **Discord**: Community discussion (coming soon)
 - **Twitter**: [@UPoolFun](https://twitter.com/UPoolFun) (coming soon)
-- **Email**: hello@upool.fun (coming soon)
 
 ---
 
