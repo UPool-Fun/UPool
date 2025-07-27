@@ -2,6 +2,9 @@
 
 **Fund together. Grow together. Go further.**
 
+> **🏆 Competing in Base Onchain Summer: [Top New Mini Apps](https://onchain-summer-awards.devfolio.co/) Category**  
+> Building the future of collaborative funding on Base blockchain with native Farcaster integration
+
 UPool is a revolutionary social funding platform built on the Base blockchain that enables friends, communities, and travelers to pool money toward shared goals, earn yield through DeFi strategies, and unlock funds based on milestone validation and community voting.
 
 Built as a native Farcaster Mini App using Minikit, UPool leverages the Farcaster social graph for trust-based pool discovery, viral sharing through Frames, and seamless wallet interactions within the Farcaster ecosystem.
@@ -17,6 +20,94 @@ UPool transforms how communities fund their dreams by combining:
 - **Milestone Accountability** - Progressive fund release based on verified achievements
 - **Democratic Governance** - Community-driven decision making with weighted voting
 - **Viral Distribution** - Interactive Farcaster Frames for pool sharing and discovery
+
+---
+
+## 🏆 Base Onchain Summer 2025
+
+### Overview
+UPool is proudly participating in the **[Base Onchain Summer Awards](https://onchain-summer-awards.devfolio.co/)** in the **"Top New Mini Apps"** category. This showcase celebrates the most innovative applications building on Base blockchain with native Farcaster integration.
+
+### Why UPool for Base Onchain Summer?
+
+#### **🌊 Perfect Fit for "Top New Mini Apps"**
+- **Native Farcaster Mini App**: Built from the ground up as a Farcaster Mini App using official Minikit SDK
+- **Production-Ready Architecture**: Enterprise-grade frontend with comprehensive UI system (40+ components)
+- **Mobile-First Design**: Seamless iPhone Farcaster app compatibility with splash screen optimization
+- **Dual Environment Support**: Unified wallet system supporting both browser and Farcaster contexts
+
+#### **⚡ Base Blockchain Integration**
+- **Base-Native Development**: Smart contracts designed specifically for Base network efficiency
+- **Base Mainnet Launch**: Final production deployment will be on Base mainnet for our showcase submission
+- **Blockscout Integration**: Using Base's preferred block explorer for contract verification
+- **Base Sepolia Testing**: Comprehensive testnet deployment and testing infrastructure
+- **OnchainKit Ready**: Prepared for Base Agent Kit and Morpho Protocol integration
+
+#### **🚀 Innovation in Social Funding**
+- **Social Graph Leverage**: Deep integration with Farcaster social connections for trust scoring
+- **Interactive Frames**: Revolutionary pool discovery and joining directly in Farcaster feeds
+- **AI-Optimized Yield**: Planned integration with Base Agent Kit for intelligent yield farming
+- **Community-Driven Governance**: Democratic decision-making with weighted voting systems
+
+### Product Launch Timeline & Milestones
+
+| Phase | Duration | Key Deliverables | Status |
+|-------|----------|------------------|---------|
+| **Phase 1** | July 1-27 | Frontend & Infrastructure | ✅ **COMPLETED** |
+| **Phase 2** | July 28 - Aug 12 | Core Development Sprint | 🚀 **IN PROGRESS** |
+| **Phase 3** | Aug 13 - Aug 23 | Launch Preparation | 🎯 **NEXT** |
+| **Phase 4** | Aug 24 - Aug 26+ | Product Launch & Beyond | 🏆 **FINAL** |
+
+### Technical Achievements for Submission
+- **✅ Production-Ready Frontend**: Complete Next.js 15 + React 19 + TypeScript application
+- **✅ Farcaster Integration**: Official SDK implementation with robust environment detection
+- **✅ Smart Contract Infrastructure**: Enterprise-grade Hardhat setup with Base deployment
+- **✅ Mobile Optimization**: Full iPhone Farcaster app compatibility
+- **🚀 Advanced Features**: Smart contracts, AI integration, and interactive Frames in development
+
+### Submission Differentiation
+1. **True Mini App Experience**: Not just a web app in a frame, but a native Farcaster Mini App
+2. **Social-First Architecture**: Built around Farcaster social graph from day one
+3. **Real Utility**: Solving actual problems in collaborative funding and group finance
+4. **Technical Excellence**: Production-grade architecture with comprehensive testing and security
+5. **Innovation in DeFi**: Combining social trust with automated yield optimization
+
+### Demo & Launch Materials
+- **Live Product**: Functional Mini App deployed on **Base Mainnet** for our showcase submission
+- **Development Testing**: Base Sepolia testnet for development and testing phases
+- **Technical Documentation**: Comprehensive architecture and implementation guides
+- **Video Demonstrations**: User journey walkthroughs and technical deep-dives
+- **Open Source**: Full codebase available for community review and contribution
+
+**🎯 Submission Deadline: August 26, 2025**
+
+---
+
+## 🚀 Deployment Strategy
+
+### **Base Network Deployment Plan**
+
+#### **Development Phase** (Current - August 22)
+- **Base Sepolia Testnet**: All development, testing, and feature validation
+- **Smart Contract Testing**: Comprehensive testing on Base Sepolia before mainnet
+- **User Testing**: Beta testing with testnet funds for safety
+
+#### **Production Launch** (August 22-23)
+- **🎯 Base Mainnet**: Final production deployment for our showcase submission
+- **Live Product**: Fully functional application on Base mainnet for the community
+- **Real Funds**: Production-ready with actual Base ETH and USDC support
+- **Launch Ready**: Live deployment accessible to all users and judges
+
+#### **Post-Launch** (August 26+)
+- **Continued Operation**: Permanent deployment on Base mainnet
+- **Community Access**: Open to all users for ongoing use
+- **Feature Expansion**: Additional features deployed to mainnet
+
+### **Why Base Mainnet?**
+1. **Production Excellence**: Real production deployment for showcase evaluation
+2. **User Experience**: Authentic experience with real transactions
+3. **Technical Validation**: Proves production readiness and scalability
+4. **Community Access**: Enables real community usage and feedback
 
 ---
 
@@ -815,68 +906,85 @@ UPool/
 
 ---
 
-## 📈 Roadmap
+## 📈 Development Roadmap
 
-### Phase 1: MVP Foundation (Q1-Q2 2025) ✅ **COMPLETED**
-**Core Platform Establishment**
-- [x] Project architecture and comprehensive documentation
-- [x] Frontend application foundation with Next.js and TypeScript
-- [x] Complete UI component library with shadcn/ui
-- [x] Detailed role definitions and workflow processes
-- [x] **Farcaster Mini App Integration**: Full Minikit + SDK integration with `sdk.isInMiniApp` detection
-- [x] **Dual Environment Wallet System**: Seamless Privy (browser) + Farcaster Quick Auth (mobile) integration
-- [x] **Frame Metadata Implementation**: Proper Farcaster Frame metadata for Mini App functionality
-- [x] **Environment Detection**: Robust mobile/desktop detection using official SDK methods
-- [x] **Webhook Infrastructure**: Complete webhook system for Farcaster notifications
-- [x] **Mobile Optimization**: iPhone Farcaster app compatibility with splash screen fix
-- [ ] Smart contract development and deployment
-- [ ] Basic pool creation with milestone system
-- [ ] AI-optimized Morpho lending implementation with Base Agent Kit
-- [ ] Basic voting and approval mechanisms
+> **🎯 Base Onchain Summer Hackathon Timeline**  
+> **4-Phase Sprint to Competition Deadline: August 26, 2025** *(30 days from July 27, 2025)*
 
-**Current Status**: Ready for smart contract integration and pool creation features
+### Phase 1: Foundation & Infrastructure (Completed ✅)
+**July 1-27, 2025 - Platform Establishment**
+- [x] **Project Architecture**: Comprehensive documentation and planning
+- [x] **Frontend Foundation**: Next.js 15 + React 19 + TypeScript production setup
+- [x] **UI Component System**: Complete shadcn/ui integration (40+ components)
+- [x] **Farcaster Mini App Integration**: Full Minikit + SDK with `sdk.isInMiniApp` detection
+- [x] **Dual Environment Wallet System**: Seamless Privy (browser) + Farcaster Quick Auth (mobile)
+- [x] **Mobile Optimization**: iPhone Farcaster app compatibility with splash screen fixes
+- [x] **Smart Contract Infrastructure**: Enterprise Hardhat setup with Base/Base Sepolia deployment
+- [x] **Blockscout Integration**: Contract verification with Base's preferred explorer
+- [x] **Webhook Infrastructure**: Complete system for Farcaster notifications
 
-### Phase 2: Enhanced Platform (Q3-Q4 2025)
-**AI Integration & Advanced Social Features**
-- [ ] Advanced Farcaster Frames with voting and milestone tracking
-- [ ] Deep Farcaster social graph analysis for enhanced trust scoring
-- [ ] Channel-based pool communities within Farcaster ecosystem
-- [ ] Professional verifier network and certification system
-- [ ] AI-powered milestone validation and fraud detection
-- [ ] Comprehensive trust scoring with Talent Protocol + Farcaster integration
-- [ ] Enhanced TikTok-style discovery feed with social graph recommendations
-- [ ] ROI tracking dashboard for investors
-- [ ] NFT marketplace and auction integration
-- [ ] Multi-channel notification system including Farcaster casts
-- [ ] Advanced pool analytics and reporting with social metrics
+**Status**: ✅ **COMPLETED** - Production-ready frontend + smart contract infrastructure
 
-**Target Metrics**: 1,000 active users, 100 active pools, $500K TVL
+### Phase 2: Core Development Sprint (July 28 - August 12, 2025) 🚀 **IN PROGRESS**
+**16-Day Intensive Development Phase**
 
-### Phase 3: Governance & Scaling (Q1-Q2 2026)
-**Decentralization & Community Growth**
-- [ ] $UPOOL governance token launch and distribution
-- [ ] DAO-based moderation and dispute resolution
-- [ ] Staking mechanisms with yield boosting rewards
-- [ ] Advanced penalty and slashing systems
-- [ ] Cross-chain expansion (Ethereum, Polygon, Arbitrum)
-- [ ] Mobile native applications (iOS/Android)
-- [ ] Enterprise features and partnership program
-- [ ] Advanced AI prediction and recommendation systems
+#### Week 1: Smart Contracts & Core Logic (July 28 - August 3)
+- [ ] **Day 1-2**: UPool core contracts with milestone system
+- [ ] **Day 3-4**: Morpho Protocol yield optimization integration  
+- [ ] **Day 5-6**: Voting and governance mechanisms
+- [ ] **Day 7**: Security features, testing, and Base Sepolia deployment
 
-**Target Metrics**: 10,000 active users, 1,000 active pools, $5M TVL
+#### Week 2: Frontend Integration & Features (August 4-10)
+- [ ] **Day 8-9**: Pool creation wizard and milestone management
+- [ ] **Day 10-11**: Member approval and contribution systems
+- [ ] **Day 12-13**: Interactive Farcaster Frames for discovery/joining
+- [ ] **Day 14**: Social graph integration for trust scoring
 
-### Phase 4: Global Expansion (Q3-Q4 2026)
-**Mass Adoption & Innovation**
-- [ ] Global compliance and regulatory framework implementation
-- [ ] Fiat on/off ramps and traditional banking integration
-- [ ] Institutional investor features and accreditation systems
-- [ ] Social media platform integrations (Twitter, Discord, Telegram)
-- [ ] Corporate team funding and innovation management tools
-- [ ] Educational content platform and certification programs
-- [ ] Community-driven feature development and governance
-- [ ] International expansion with localized support
+#### Final Sprint: AI & Polish (August 11-12)
+- [ ] **Day 15**: Base Agent Kit AI yield optimization
+- [ ] **Day 16**: Milestone proof validation and risk assessment
 
-**Target Metrics**: 100,000 active users, 10,000 active pools, $50M TVL
+**Milestone**: Fully functional Mini App with all core features operational
+
+### Phase 3: Product Launch Sprint (August 13-23, 2025) 🏆 **LAUNCH FOCUS**
+**11-Day Launch Preparation Phase**
+
+#### Testing & Optimization (August 13-17)
+- [ ] **Day 17-18**: Comprehensive cross-device testing and bug fixes
+- [ ] **Day 19-20**: Performance optimization and mobile responsiveness
+- [ ] **Day 21**: Error handling and user feedback systems
+
+#### Demo & Documentation (August 18-21)
+- [ ] **Day 22**: Demo pools with realistic scenarios and user flows
+- [ ] **Day 23**: Video demonstrations and technical documentation
+- [ ] **Day 24**: Showcase submission materials preparation
+- [ ] **Day 25**: Security audit and compliance verification
+
+#### Final Launch (August 22-23)
+- [ ] **Day 26**: Final testing and **Base Mainnet deployment** for production
+- [ ] **Day 27**: Devfolio submission and live product finalization
+
+**🎯 Launch Target**: Product live by August 23, 2025 (3-day buffer)
+**🚀 Production**: Live on **Base Mainnet** for the community and showcase judges
+
+### Phase 4: Product Showcase & Beyond (August 24-26, 2025 + Future)
+**Post-Launch & Long-term Vision**
+
+#### Showcase Period (August 24-26)
+- [ ] **Day 28-30**: Community engagement and user onboarding
+- [ ] **Ongoing**: Product support and community interaction
+- [ ] **Future**: Showcase results and growth planning
+
+#### Post-Launch Roadmap (September 2025+)
+- [ ] **Q3 2025**: Advanced Farcaster Frames and social graph analysis
+- [ ] **Q4 2025**: Governance token launch and DAO implementation  
+- [ ] **Q1 2026**: Cross-chain expansion and mobile native apps
+- [ ] **Q2+ 2026**: Global scaling and institutional features
+
+**Target Metrics**: 
+- **Launch**: Functional product with 50+ beta users
+- **Q4 2025**: 1,000 active users, 100 pools, $500K TVL
+- **2026**: 10,000+ users, $5M+ TVL
 
 ---
 
