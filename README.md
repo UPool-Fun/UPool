@@ -1,6 +1,12 @@
 # UPool - Social Funding Platform 🌊
 
-**Fund together. Grow together. Go further.**
+**Pool your dreams. Share the journey. Achieve together.**
+
+*Alternative slogans:*
+- *Fund together. Grow together. Go further.* (original)
+- *Where goals meet community funding*
+- *Social funding, simplified and secure*
+- *Turn shared dreams into funded reality*
 
 > **🏆 Showcasing in Base Onchain Summer: [Top New Mini Apps](https://onchain-summer-awards.devfolio.co/) Category**  
 > Building the future of collaborative funding on Base blockchain with native Farcaster integration
