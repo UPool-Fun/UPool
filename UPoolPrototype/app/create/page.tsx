@@ -9,8 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, ArrowRight, Plus, Trash2, Link2, Globe, Shield, TrendingUp, Zap } from "lucide-react"
+import { ArrowLeft, ArrowRight, Plus, Trash2, Link2, Globe, Shield, TrendingUp, Zap, Wallet, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import { createBaseAccountSDK, pay, getPaymentStatus } from '@base-org/account'
+import { SignInWithBaseButton, BasePayButton } from '@base-org/account-ui/react'
+
 
 interface Milestone {
   id: string
@@ -33,8 +36,15 @@ export default function CreatePool() {
     vanityUrl: "",
     riskStrategy: "low",
   })
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
+  const [paymentId, setPaymentId] = useState<string>('')
+  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [paymentStatusMessage, setPaymentStatusMessage] = useState('')
 
-  const totalSteps = 6
+  // Initialize Base Account SDK - using empty object as fallback
+  const sdk = createBaseAccountSDK({} as any)
+
+  const totalSteps = 7
   const progress = (currentStep / totalSteps) * 100
 
   const addMilestone = () => {
@@ -63,6 +73,68 @@ export default function CreatePool() {
       milestones: prev.milestones.map((m) => (m.id === id ? { ...m, [field]: value } : m)),
     }))
   }
+
+  // Optional sign-in step – not required for `pay()`, but useful to get the user address
+  const handleSignIn = async () => {
+    try {
+      await sdk.getProvider().request({ method: 'wallet_connect' });
+      setIsSignedIn(true);
+      setPaymentStatusMessage('✅ Connected to Base Account');
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      setPaymentStatusMessage('❌ Sign in failed');
+    }
+  };
+
+  // Real Base Pay payment using the pay() function
+  const handleBasePayDeposit = async () => {
+    try {
+      setPaymentStatus('processing')
+      setPaymentStatusMessage('Initiating payment...')
+      
+      // Create a real payment using Base Pay
+      const { id } = await pay({
+        amount: '0.01', // USD – SDK quotes equivalent USDC
+        to: '0x1234567890123456789012345678901234567890', // Dummy recipient address for demo
+        testnet: true // Use Base Sepolia testnet
+      });
+
+      setPaymentId(id);
+      setPaymentStatus('success')
+      setPaymentStatusMessage('Payment initiated! Click "Check Status" to see the result.')
+      
+      console.log('Base Pay payment completed:', {
+        paymentId: id,
+        amount: '0.01 USD',
+        poolTitle: poolData.title,
+        recipient: '0x1234567890123456789012345678901234567890'
+      })
+    } catch (error) {
+      console.error('Payment failed:', error)
+      setPaymentStatus('error')
+      setPaymentStatusMessage('Payment failed: ' + (error as Error).message)
+    }
+  }
+
+  // Check payment status using stored payment ID
+  const handleCheckStatus = async () => {
+    if (!paymentId) {
+      setPaymentStatusMessage('No payment ID found. Please make a payment first.');
+      return;
+    }
+
+    try {
+      const { status } = await getPaymentStatus({ id: paymentId });
+      setPaymentStatusMessage(`Payment status: ${status}`);
+      
+      if (status === 'completed') {
+        setPaymentStatus('success');
+      }
+    } catch (error) {
+      console.error('Status check failed:', error);
+      setPaymentStatusMessage('Status check failed: ' + (error as Error).message);
+    }
+  };
 
   const nextStep = () => {
     if (currentStep < totalSteps) {
@@ -357,6 +429,135 @@ export default function CreatePool() {
           </div>
         )
 
+      case 7:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Initial Pool Deposit</h3>
+            <div className="space-y-4">
+              <Card className="border border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <Wallet className="w-6 h-6 text-blue-600" />
+                    <div>
+                      <h4 className="font-medium">Base Account Integration</h4>
+                      <p className="text-sm text-gray-600">Make your first deposit using Base Pay on Base Sepolia</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">Pool Title</span>
+                        <span className="text-sm text-gray-600">{poolData.title || 'Untitled Pool'}</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">Funding Goal</span>
+                        <span className="text-sm text-gray-600">{poolData.fundingGoal || '0'} ETH</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Initial Deposit</span>
+                        <span className="text-sm font-semibold text-blue-600">0.01 USD (USDC)</span>
+                      </div>
+                    </div>
+
+                    {/* Base Account Sign In */}
+                    {!isSignedIn && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 text-center">Connect your Base Account first:</p>
+                        <div className="flex justify-center">
+                          <SignInWithBaseButton 
+                            align="center"
+                            variant="solid"
+                            colorScheme="light"
+                            onClick={handleSignIn}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Payment Status */}
+                    {isSignedIn && (
+                      <div className="space-y-3">
+                        <div className="text-center py-2">
+                          <div className="flex items-center justify-center mb-2">
+                            <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                            <span className="text-sm text-green-600">Connected to Base Account</span>
+                          </div>
+                        </div>
+
+                        {paymentStatus === 'idle' && (
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-600 text-center">Ready to make your first deposit:</p>
+                            <div className="flex justify-center">
+                              <BasePayButton 
+                                colorScheme="light"
+                                onClick={handleBasePayDeposit}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {paymentStatus === 'processing' && (
+                          <div className="text-center py-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-600">Processing payment...</p>
+                          </div>
+                        )}
+
+                        {paymentStatus === 'success' && (
+                          <div className="text-center py-4 space-y-3">
+                            <div className="flex items-center justify-center mb-2">
+                              <CheckCircle className="w-8 h-8 text-green-600" />
+                            </div>
+                            <p className="text-sm font-medium text-green-600">Payment Initiated!</p>
+                            <p className="text-xs text-gray-600">Payment ID: {paymentId}</p>
+                            
+                            {paymentId && (
+                              <Button 
+                                onClick={handleCheckStatus}
+                                variant="outline"
+                                size="sm"
+                              >
+                                Check Payment Status
+                              </Button>
+                            )}
+                          </div>
+                        )}
+
+                        {paymentStatus === 'error' && (
+                          <div className="text-center py-4">
+                            <p className="text-sm text-red-600 mb-2">Payment failed. Please try again.</p>
+                            <Button 
+                              onClick={handleBasePayDeposit}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Retry Payment
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Status Messages */}
+                    {paymentStatusMessage && (
+                      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-gray-700">{paymentStatusMessage}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg">
+                <p className="font-medium mb-1">About Base Account Integration</p>
+                <p>This integrates with real Base Pay to process actual deposits on Base Sepolia testnet. The payment will be converted to USDC and sent to the pool address.</p>
+                <p className="mt-2 text-xs">Note: This is a testnet transaction. No real funds will be transferred.</p>
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         return null
     }
@@ -403,6 +604,7 @@ export default function CreatePool() {
                 {currentStep === 4 && "Approval Method"}
                 {currentStep === 5 && "Pool Identity"}
                 {currentStep === 6 && "Risk Strategy"}
+                {currentStep === 7 && "Initial Deposit"}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">{renderStep()}</CardContent>
@@ -416,15 +618,21 @@ export default function CreatePool() {
             </Button>
 
             {currentStep === totalSteps ? (
-              <Button
-                className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700"
-                asChild
-              >
-                <Link href="/pool/summary">
-                  Create Pool
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+              paymentStatus === 'success' ? (
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700"
+                  asChild
+                >
+                  <Link href="/pool/summary">
+                    Create Pool
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button disabled>
+                  Complete Deposit First
+                </Button>
+              )
             ) : (
               <Button onClick={nextStep}>
                 Next
