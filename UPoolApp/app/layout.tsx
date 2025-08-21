@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { WalletProvider } from '@/components/providers/wallet-provider';
+import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -92,11 +93,6 @@ export const metadata: Metadata = {
     creator: '@UPoolFun',
     images: [process.env.NEXT_PUBLIC_IMAGE_URL || 'https://upool.fun/logo-seo.png'],
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
     yandex: process.env.YANDEX_VERIFICATION,
@@ -115,6 +111,12 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -125,6 +127,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <WalletProvider>
           {children}
+          <Toaster />
         </WalletProvider>
       </body>
     </html>
