@@ -2,96 +2,10 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isValidAddress(address) {
-      return address is string && 
-             (address.matches('^0x[a-fA-F0-9]{40}$') || // Ethereum address
-              address.matches('^farcaster:[0-9]+$')); // Farcaster ID format
-    }
-    
-    function isValidPoolData(poolData) {
-      return poolData.keys().hasAll(['title', 'description', 'fundingGoal', 'milestones', 'visibility']) &&
-             poolData.title is string &&
-             poolData.description is string &&
-             poolData.fundingGoal is string &&
-             poolData.milestones is list &&
-             poolData.visibility in ['private', 'link', 'public'];
-    }
-    
-    // Pools collection rules - Open for development
-    match /pools/{poolId} {
-      // Allow read for all pools (public discovery + creator access)
-      allow read: if true;
-      
-      // Allow create with valid pool data structure
-      allow create: if isValidAddress(resource.data.creatorAddress) &&
-                       // Required fields are present
-                       resource.data.keys().hasAll(['poolData', 'status', 'creatorAddress', 'version', 'source']) &&
-                       // Status starts as draft
-                       resource.data.status in ['draft', 'pending_payment', 'payment_processing'] &&
-                       // Valid pool data structure
-                       isValidPoolData(resource.data.poolData) &&
-                       // Version and source are valid
-                       resource.data.version is string &&
-                       resource.data.source in ['web', 'farcaster', 'mobile'];
-      
-      // Allow update with some validation
-      allow update: if isValidAddress(resource.data.creatorAddress) &&
-                       // Cannot change creator address
-                       resource.data.creatorAddress == request.resource.data.creatorAddress &&
-                       // Must maintain valid structure
-                       request.resource.data.keys().hasAll(['poolData', 'status', 'creatorAddress']);
-      
-      // Allow delete (for cleanup)
-      allow delete: if true;
-    }
-    
-    // Contributors collection rules - Open for development
-    match /contributors/{contributorId} {
-      // Allow read for all (can be restricted later)
-      allow read: if true;
-      
-      // Allow create with valid structure
-      allow create: if isValidAddress(resource.data.address) &&
-                       resource.data.keys().hasAll(['poolId', 'address', 'amount', 'transactionHash']) &&
-                       resource.data.poolId is string &&
-                       resource.data.amount is string &&
-                       resource.data.transactionHash is string;
-      
-      // Allow update
-      allow update: if true;
-      
-      // Allow delete (for cleanup)
-      allow delete: if true;
-    }
-    
-    // Milestone completions collection rules - Open for development
-    match /milestone_completions/{milestoneId} {
-      // Allow read for all
-      allow read: if true;
-      
-      // Allow create with valid structure
-      allow create: if resource.data.keys().hasAll(['poolId', 'milestoneId', 'completedBy']) &&
-                       resource.data.poolId is string &&
-                       resource.data.milestoneId is string &&
-                       isValidAddress(resource.data.completedBy);
-      
-      // Allow update
-      allow update: if true;
-      
-      // Allow delete (for cleanup)
-      allow delete: if true;
-    }
-    
-    // Users collection rules - Open for development
-    match /users/{userId} {
-      // Allow read and write for all (can be restricted later)
-      allow read, write: if true;
-    }
-    
-    // Fallback: Deny all other access
+    // Development rules - Allow all operations
+    // TODO: Restrict these rules for production
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }

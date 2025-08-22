@@ -107,17 +107,41 @@ export class PoolService {
    */
   static async getPoolsByCreator(creatorAddress: string): Promise<PoolDocument[]> {
     try {
-      const poolsQuery = query(
+      // Try with orderBy first (requires composite index)
+      let poolsQuery = query(
         collection(db, COLLECTIONS.POOLS),
         where('creatorAddress', '==', creatorAddress),
         orderBy('createdAt', 'desc')
       )
       
-      const querySnapshot = await getDocs(poolsQuery)
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as PoolDocument))
+      try {
+        const querySnapshot = await getDocs(poolsQuery)
+        return querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as PoolDocument))
+      } catch (indexError) {
+        console.warn('Composite index not ready, falling back to simple query:', indexError)
+        
+        // Fallback: query without ordering (no index required)
+        const simpleQuery = query(
+          collection(db, COLLECTIONS.POOLS),
+          where('creatorAddress', '==', creatorAddress)
+        )
+        
+        const simpleSnapshot = await getDocs(simpleQuery)
+        const pools = simpleSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as PoolDocument))
+        
+        // Sort manually by createdAt desc
+        return pools.sort((a, b) => {
+          const aDate = a.createdAt?.toMillis?.() || 0
+          const bDate = b.createdAt?.toMillis?.() || 0
+          return bDate - aDate
+        })
+      }
     } catch (error) {
       console.error('Error getting pools by creator:', error)
       throw new Error('Failed to get creator pools')

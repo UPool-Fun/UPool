@@ -18,6 +18,8 @@ import { SignInWithBaseButton, BasePayButton } from '@base-org/account-ui/react'
 import { PoolService } from '@/lib/pool-service'
 import { PoolData } from '@/lib/firestore-schema'
 import { toast } from 'sonner'
+import MilestoneManager from '@/components/milestone-manager'
+import { Header } from '@/components/header'
 
 interface Milestone {
   id: string
@@ -160,32 +162,6 @@ export default function CreatePool() {
     toast.success('Draft saved successfully!')
   }
 
-  const addMilestone = () => {
-    const newMilestone: Milestone = {
-      id: Date.now().toString(),
-      title: "",
-      description: "",
-      percentage: 0,
-    }
-    setPoolData((prev) => ({
-      ...prev,
-      milestones: [...prev.milestones, newMilestone],
-    }))
-  }
-
-  const removeMilestone = (id: string) => {
-    setPoolData((prev) => ({
-      ...prev,
-      milestones: prev.milestones.filter((m) => m.id !== id),
-    }))
-  }
-
-  const updateMilestone = (id: string, field: keyof Milestone, value: string | number) => {
-    setPoolData((prev) => ({
-      ...prev,
-      milestones: prev.milestones.map((m) => (m.id === id ? { ...m, [field]: value } : m)),
-    }))
-  }
 
   // Optional sign-in step – not required for `pay()`, but useful to get the user address
   const handleSignIn = async () => {
@@ -269,6 +245,20 @@ export default function CreatePool() {
 
   const nextStep = async () => {
     if (currentStep < totalSteps) {
+      // Validate current step before proceeding
+      if (currentStep === 2) {
+        // Validate milestones
+        const totalPercentage = poolData.milestones.reduce((sum, m) => sum + m.percentage, 0)
+        if (totalPercentage !== 100) {
+          toast.error('Milestones must add up to exactly 100% before proceeding')
+          return
+        }
+        if (poolData.milestones.length === 0) {
+          toast.error('Please add at least one milestone before proceeding')
+          return
+        }
+      }
+      
       // Auto-save when moving to next step
       if (walletAddress && poolData.title) {
         await saveDraft()
@@ -322,71 +312,11 @@ export default function CreatePool() {
 
       case 2:
         return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Milestones</h3>
-              <Button onClick={addMilestone} size="sm" variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Milestone
-              </Button>
-            </div>
-
-            {poolData.milestones.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No milestones added yet. Add your first milestone to get started.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {poolData.milestones.map((milestone, index) => (
-                  <Card key={milestone.id} className="border border-gray-200">
-                    <CardContent className="p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary">Milestone {index + 1}</Badge>
-                        <Button
-                          onClick={() => removeMilestone(milestone.id)}
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Title</Label>
-                          <Input
-                            placeholder="e.g., Book flights"
-                            value={milestone.title}
-                            onChange={(e) => updateMilestone(milestone.id, "title", e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Unlock Percentage</Label>
-                          <Input
-                            type="number"
-                            placeholder="25"
-                            value={milestone.percentage}
-                            onChange={(e) =>
-                              updateMilestone(milestone.id, "percentage", Number.parseInt(e.target.value) || 0)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Textarea
-                          placeholder="Describe what needs to be completed..."
-                          value={milestone.description}
-                          onChange={(e) => updateMilestone(milestone.id, "description", e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+          <MilestoneManager
+            milestones={poolData.milestones}
+            onMilestonesChange={(milestones) => setPoolData((prev) => ({ ...prev, milestones }))}
+            fundingGoal={poolData.fundingGoal}
+          />
         )
 
       case 3:
@@ -495,7 +425,7 @@ export default function CreatePool() {
               <div className="space-y-2">
                 <Label>Vanity URL</Label>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">upool.cc/p/</span>
+                  <span className="text-sm text-gray-500">upool.fun/p/</span>
                   <Input
                     placeholder="skytrip"
                     value={poolData.vanityUrl}
@@ -504,7 +434,7 @@ export default function CreatePool() {
                 </div>
                 {poolData.vanityUrl && (
                   <p className="text-sm text-gray-600">
-                    Your pool will be available at: <span className="font-mono">upool.cc/p/{poolData.vanityUrl}</span>
+                    Your pool will be available at: <span className="font-mono">upool.fun/p/{poolData.vanityUrl}</span>
                   </p>
                 )}
               </div>
@@ -700,19 +630,13 @@ export default function CreatePool() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      {/* Header */}
-      <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <ArrowLeft className="w-4 h-4" />
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">U</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">UPool</span>
-            </div>
-          </Link>
-          <div className="flex items-center space-x-4">
+      <Header 
+        backButton={{
+          href: "/",
+          text: "Home"
+        }}
+        customButtons={
+          <div className="flex items-center space-x-3">
             {clientMounted && walletAddress && (
               <Button 
                 onClick={handleSaveDraft} 
@@ -725,12 +649,24 @@ export default function CreatePool() {
                 <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
               </Button>
             )}
-            <div className="text-sm text-gray-600">
-              Step {currentStep} of {totalSteps}
-            </div>
+            {clientMounted && walletAddress && (
+              <Link href="/dashboard">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  Dashboard
+                </Button>
+              </Link>
+            )}
           </div>
-        </div>
-      </header>
+        }
+        stepProgress={{
+          current: currentStep,
+          total: totalSteps
+        }}
+      />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
@@ -811,7 +747,15 @@ export default function CreatePool() {
                 </Button>
               )
             ) : (
-              <Button onClick={nextStep}>
+              <Button 
+                onClick={nextStep}
+                disabled={
+                  currentStep === 2 && (
+                    poolData.milestones.length === 0 || 
+                    poolData.milestones.reduce((sum, m) => sum + m.percentage, 0) !== 100
+                  )
+                }
+              >
                 Next
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

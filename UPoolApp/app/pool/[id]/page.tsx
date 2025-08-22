@@ -24,7 +24,7 @@ const poolData = {
   protocol: "Aave",
   members: 12,
   creator: "alice.eth",
-  vanityUrl: "upool.cc/p/skytrip",
+  vanityUrl: "upool.fun/p/skytrip",
   milestones: [
     {
       id: 1,
@@ -67,7 +67,7 @@ const poolData = {
 export default function PoolDashboard() {
   const [showQR, setShowQR] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
-  const inviteLink = `upool.cc/p/${poolData.id}/join`
+  const inviteLink = `upool.fun/p/${poolData.id}/join`
   const [userBalance] = useState(2.5) // Mock user wallet balance
   const [userContribution, setUserContribution] = useState(1.2) // Mock user contribution to this pool
   const [userRole] = useState<"creator" | "member">("member") // Mock user role
