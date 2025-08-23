@@ -1,7 +1,6 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { PrivyProvider, usePrivy } from '@privy-io/react-auth'
 import { WagmiProvider, useAccount, useConnect, useDisconnect } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { config } from '@/lib/wagmi'
@@ -32,35 +31,65 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
-// Browser wallet component (using Privy)
+// Browser wallet component (using Base Account via Wagmi)
 function BrowserWalletProvider({ children }: { children: ReactNode }) {
-  const { login, logout, authenticated, user } = usePrivy()
   const [isConnecting, setIsConnecting] = useState(false)
+  
+  // Use Wagmi hooks for Base Account
+  const { address, isConnected } = useAccount()
+  const { connect: wagmiConnect, connectors } = useConnect()
+  const { disconnect: wagmiDisconnect } = useDisconnect()
 
-  const connect = () => {
-    setIsConnecting(true)
-    login()
-      .then(() => {
-        setIsConnecting(false)
-      })
-      .catch((error) => {
-        console.error('Login failed:', error)
-        setIsConnecting(false)
-      })
+  const connect = async () => {
+    try {
+      console.log('🚀 Starting Base Account connection...')
+      setIsConnecting(true)
+      
+      // Find Base Account connector (already configured in wagmi.ts)
+      const baseConnector = connectors.find(
+        connector => connector.id === 'baseAccount'
+      )
+      
+      if (baseConnector) {
+        console.log('🎯 Using Base Account connector')
+        await wagmiConnect({ connector: baseConnector })
+        console.log('✅ Base Account connected via Wagmi')
+      } else {
+        console.log('⚠️ Base Account connector not found, using first available')
+        // Fallback to first available connector
+        if (connectors.length > 0) {
+          await wagmiConnect({ connector: connectors[0] })
+        }
+      }
+    } catch (error) {
+      console.error('❌ Base Account connection failed:', error)
+    } finally {
+      setIsConnecting(false)
+    }
   }
 
-  const disconnect = () => {
-    logout()
+  const disconnect = async () => {
+    try {
+      await wagmiDisconnect()
+    } catch (error) {
+      console.error('❌ Disconnect error:', error)
+    }
   }
 
   const contextValue: WalletContextType = {
-    isConnected: authenticated,
-    address: user?.wallet?.address,
+    isConnected,
+    address,
     connect,
     disconnect,
     isConnecting,
     isFarcaster: false,
   }
+
+  console.log('🌐 BrowserWalletProvider (Base Account) state:', {
+    isConnected,
+    address,
+    isConnecting
+  })
 
   return (
     <WalletContext.Provider value={contextValue}>
@@ -318,31 +347,16 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  // Browser mode with Privy
-  console.log('🌐 Using Browser mode with Privy')
+  // Browser mode with Base Account (via Wagmi)
+  console.log('🌐 Using Browser mode with Base Account')
   return (
-    <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
-      config={{
-        appearance: {
-          theme: 'light',
-          accentColor: '#8B5CF6',
-          logo: '/logo.svg',
-        },
-        embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
-        },
-        defaultChain: config.chains[0],
-      }}
-    >
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <BrowserWalletProvider>
-            {children}
-          </BrowserWalletProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </PrivyProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserWalletProvider>
+          {children}
+        </BrowserWalletProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
 

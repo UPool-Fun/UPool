@@ -13,8 +13,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, ArrowRight, Plus, Trash2, Link2, Globe, Shield, TrendingUp, Zap, Wallet, CheckCircle, Save } from "lucide-react"
 import Link from "next/link"
-import { createBaseAccountSDK, pay, getPaymentStatus } from '@base-org/account'
-import { SignInWithBaseButton, BasePayButton } from '@base-org/account-ui/react'
+import { pay, getPaymentStatus } from '@base-org/account'
+import { BasePayButton } from '@base-org/account-ui/react'
 import { PoolService } from '@/lib/pool-service'
 import { PoolData } from '@/lib/firestore-schema'
 import { toast } from 'sonner'
@@ -67,23 +67,14 @@ export default function CreatePool() {
   })
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
   const [paymentId, setPaymentId] = useState<string>('')
-  const [isSignedIn, setIsSignedIn] = useState(false)
   const [paymentStatusMessage, setPaymentStatusMessage] = useState('')
   const [mounted, setMounted] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
-  // Initialize Base Account SDK - using empty object as fallback
-  const [sdk, setSdk] = useState<any>(null)
-
   useEffect(() => {
     setMounted(true)
     setClientMounted(true)
-    // Initialize SDK only on client side
-    if (typeof window !== 'undefined') {
-      const baseSDK = createBaseAccountSDK({} as any)
-      setSdk(baseSDK)
-    }
   }, [])
 
   // Auto-save draft every 30 seconds if there are changes
@@ -163,20 +154,8 @@ export default function CreatePool() {
   }
 
 
-  // Optional sign-in step – not required for `pay()`, but useful to get the user address
-  const handleSignIn = async () => {
-    if (!sdk) return;
-    try {
-      await sdk.getProvider().request({ method: 'wallet_connect' });
-      setIsSignedIn(true);
-      setPaymentStatusMessage('✅ Connected to Base Account');
-    } catch (error) {
-      console.error('Sign in failed:', error);
-      setPaymentStatusMessage('❌ Sign in failed');
-    }
-  };
 
-  // Real Base Pay payment using the pay() function
+  // Base Pay payment - works with or without Wagmi connection
   const handleBasePayDeposit = async () => {
     if (!poolId || !walletAddress) {
       toast.error('Please complete previous steps first')
@@ -190,10 +169,21 @@ export default function CreatePool() {
       // Update pool status to payment processing
       await PoolService.markPaymentProcessing(poolId, 'pending')
       
-      // Create a real payment using Base Pay
+      // Log wallet context for debugging
+      console.log('Base Pay Context:', {
+        poolId,
+        walletAddress,
+        wagmiAddress,
+        isFarcaster,
+        isConnected,
+        userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi'
+      })
+      
+      // Base Pay works independently of wallet connection type
+      // The pay() function handles wallet interaction internally
       const { id } = await pay({
-        amount: '0.01', // USD – SDK quotes equivalent USDC
-        to: '0x1234567890123456789012345678901234567890', // Dummy recipient address for demo
+        amount: '0.01', // USD – SDK automatically converts to USDC
+        to: '0x1234567890123456789012345678901234567890', // Dummy recipient for demo
         testnet: true // Use Base Sepolia testnet
       });
 
@@ -203,20 +193,37 @@ export default function CreatePool() {
       await PoolService.markPaymentProcessing(poolId, id)
       
       setPaymentStatus('success')
-      setPaymentStatusMessage('Payment initiated! Click "Check Status" to see the result.')
+      setPaymentStatusMessage('✅ Payment initiated successfully! Click "Check Status" to see the result.')
+      
+      toast.success('Payment initiated successfully!')
       
       console.log('Base Pay payment completed:', {
         paymentId: id,
-        amount: '0.01 USD',
+        amount: '0.01 USD → USDC',
         poolTitle: poolData.title,
         poolId,
-        walletAddress,
+        userWallet: walletAddress,
+        wagmiWallet: wagmiAddress,
+        userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi',
         recipient: '0x1234567890123456789012345678901234567890'
       })
     } catch (error) {
-      console.error('Payment failed:', error)
+      console.error('Base Pay error:', error)
       setPaymentStatus('error')
-      setPaymentStatusMessage('Payment failed: ' + (error as Error).message)
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown payment error'
+      setPaymentStatusMessage(`❌ Payment failed: ${errorMessage}`)
+      
+      // Provide helpful error messages based on error type
+      if (errorMessage.toLowerCase().includes('user rejected')) {
+        toast.error('Payment cancelled by user')
+      } else if (errorMessage.toLowerCase().includes('insufficient')) {
+        toast.error('Insufficient funds. Please add funds to your account.')
+      } else if (errorMessage.toLowerCase().includes('network')) {
+        toast.error('Network error. Please check your connection and try again.')
+      } else {
+        toast.error(`Payment failed: ${errorMessage}`)
+      }
     }
   }
 
@@ -525,28 +532,19 @@ export default function CreatePool() {
                       </div>
                     </div>
 
-                    {/* Base Account Sign In */}
-                    {!isSignedIn && mounted && (
-                      <div className="space-y-3">
-                        <p className="text-sm text-gray-600 text-center">Connect your Base Account first:</p>
-                        <div className="flex justify-center">
-                          <SignInWithBaseButton 
-                            align="center"
-                            variant="solid"
-                            colorScheme="light"
-                            onClick={handleSignIn}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Payment Status */}
-                    {isSignedIn && mounted && (
-                      <div className="space-y-3">
+                    {/* Payment Section - Simplified */}
+                    {clientMounted && walletAddress && !walletAddress.startsWith('fid:') && (
+                      <div className="space-y-4">
                         <div className="text-center py-2">
                           <div className="flex items-center justify-center mb-2">
                             <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                            <span className="text-sm text-green-600">Connected to Base Account</span>
+                            <span className="text-sm text-green-600">
+                              {isFarcaster ? 'Farcaster Account' : 'Wallet'} Connected
+                            </span>
+                          </div>
+                          {/* Show connected wallet info for context */}
+                          <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-md inline-block">
+                            {isFarcaster ? 'Farcaster' : 'Wagmi'} Wallet: {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
                           </div>
                         </div>
 
@@ -601,6 +599,45 @@ export default function CreatePool() {
                             </Button>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {/* Farcaster User - Need Wallet for Payment */}
+                    {clientMounted && walletAddress && walletAddress.startsWith('fid:') && (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                          <Wallet className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Wallet for Payment</h3>
+                        <p className="text-gray-600 mb-4">
+                          You're signed in with Farcaster! To make payments with Base Pay, you'll also need to connect a wallet.
+                        </p>
+                        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                          <div className="text-sm text-gray-700">
+                            <p className="font-medium mb-1">✅ Farcaster Identity: Connected</p>
+                            <p className="text-xs text-gray-500">{walletAddress}</p>
+                            <p className="font-medium mt-2 text-blue-700">⚠️ Wallet: Required for Base Pay</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          Use the "Connect" button in the header to add your wallet for payments.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Wallet Connection Required */}
+                    {clientMounted && !walletAddress && (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                          <Wallet className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
+                        <p className="text-gray-600 mb-6">
+                          You need to connect your wallet to make the initial deposit and create your pool.
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Use the "Connect" button in the header to connect your wallet or Base Account.
+                        </p>
                       </div>
                     )}
 

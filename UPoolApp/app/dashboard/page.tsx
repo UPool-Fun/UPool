@@ -13,15 +13,34 @@ import { PoolService } from '@/lib/pool-service'
 import { PoolDocument } from '@/lib/firestore-schema'
 
 export default function Dashboard() {
-  const { address, isConnected } = useWallet()
   const [userPools, setUserPools] = useState<PoolDocument[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [clientMounted, setClientMounted] = useState(false)
+
+  // Safe wallet context usage with SSR protection
+  let address: string | undefined
+  let isConnected = false
+  
+  try {
+    const walletContext = useWallet()
+    address = walletContext?.address
+    isConnected = walletContext?.isConnected || false
+  } catch (error) {
+    // Handle SSR or provider not available
+    address = undefined
+    isConnected = false
+  }
+
+  // Client-side mounting check
+  useEffect(() => {
+    setClientMounted(true)
+  }, [])
 
   // Load user's pools
   useEffect(() => {
     const loadUserPools = async () => {
-      if (!address || !isConnected) {
+      if (!clientMounted || !address || !isConnected) {
         setIsLoading(false)
         return
       }
@@ -40,7 +59,12 @@ export default function Dashboard() {
     }
 
     loadUserPools()
-  }, [address, isConnected])
+  }, [address, isConnected, clientMounted])
+
+  // Show loading during hydration
+  if (!clientMounted) {
+    return <div>Loading...</div>
+  }
 
   // If not connected, show connect prompt
   if (!isConnected) {
