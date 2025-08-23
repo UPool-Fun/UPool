@@ -1,7 +1,8 @@
 "use client"
 
-import { useWallet } from "@/components/providers/wallet-provider"
-import { ConnectMenuSimple } from "@/components/connect-menu-simple"
+import { useWallet } from "@/components/providers/wallet-provider-simple"
+import { IdentityConnect } from "@/components/identity-connect-simple"
+import { WalletDebug } from "@/components/wallet-debug"
 import { useEffect, useState } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 
@@ -91,9 +92,14 @@ export default function DebugPage() {
           }, null, 2)}</pre>
         </div>
         
+        <div className="bg-orange-50 p-4 rounded border">
+          <h2 className="font-semibold text-orange-800">🔧 Wallet Context Debug:</h2>
+          <WalletDebug />
+        </div>
+        
         <div className="bg-emerald-50 p-4 rounded border">
-          <h2 className="font-semibold text-emerald-800">🔗 Connect Menu Test:</h2>
-          <ConnectMenuSimple />
+          <h2 className="font-semibold text-emerald-800">🔗 Identity Connect Test:</h2>
+          <IdentityConnect />
         </div>
         
         <div className="bg-red-50 p-4 rounded border">

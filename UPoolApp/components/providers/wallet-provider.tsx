@@ -3,9 +3,15 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { WagmiProvider, useAccount, useConnect, useDisconnect } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { OnchainKitProvider } from '@coinbase/onchainkit'
+import { base, baseSepolia } from 'wagmi/chains'
 import { config } from '@/lib/wagmi'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { SdkInitializer } from '@/components/sdk-initializer'
+
+// Get chain configuration from environment
+const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "84532")
+const targetChain = TARGET_CHAIN_ID === 8453 ? base : baseSepolia
 
 // Environment detection
 const isFarcasterContext = () => {
@@ -88,7 +94,9 @@ function BrowserWalletProvider({ children }: { children: ReactNode }) {
   console.log('🌐 BrowserWalletProvider (Base Account) state:', {
     isConnected,
     address,
-    isConnecting
+    isConnecting,
+    connectorsAvailable: connectors.length,
+    connectorIds: connectors.map(c => c.id)
   })
 
   return (
@@ -247,85 +255,37 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkFarcasterContext = async () => {
       try {
-        console.log('🔍 Starting environment detection...')
-        
-        // Add timeout to prevent hanging on mobile
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Context timeout')), 3000)
-        })
-        
-        const context = await Promise.race([
-          sdk.context,
-          timeoutPromise
-        ])
-        
-        console.log('📱 Environment detection context:', context)
+        console.log('🔍 Starting simplified environment detection...')
         
         // Check User Agent first for reliability
         const isMobileFarcaster = typeof window !== 'undefined' && 
           window.navigator.userAgent.includes('FarcasterMobile')
         
-        // Use official SDK method to detect if we're in a Mini App
-        const isInMiniApp = sdk.isInMiniApp
-        console.log('🎯 Official SDK detection - isInMiniApp:', isInMiniApp)
-        
-        // Check for actual Farcaster context data
-        const hasValidFarcasterContext = !!(
-          context?.client?.clientFid ||  // Farcaster client with real FID
-          context?.user?.fid ||          // User with Farcaster ID
-          (context?.isMinApp === true && context?.client) // Explicit miniapp with client
-        )
-        
-        // More strict environment detection
-        const isIframe = typeof window !== 'undefined' && window.parent !== window
-        const hasFarcasterDomain = typeof window !== 'undefined' && 
-          (window.location.hostname.includes('farcaster') || 
-           document.referrer.includes('farcaster'))
-        
-        // Final determination - be more conservative
-        // Only treat as Farcaster if we have clear evidence
-        const finalIsFarcaster = (
-          isMobileFarcaster || 
-          (isInMiniApp && hasValidFarcasterContext) ||
-          (hasValidFarcasterContext && (isIframe || hasFarcasterDomain))
-        )
-        
-        console.log('🎯 Environment detection result:', {
-          officialSDK_isInMiniApp: isInMiniApp,
-          contextExists: !!context,
-          clientFid: context?.client?.clientFid,
-          userFid: context?.user?.fid,
-          isMinApp: context?.isMinApp,
-          hasValidFarcasterContext,
+        console.log('📱 Environment check:', {
           isMobileFarcaster,
-          isIframe,
-          hasFarcasterDomain,
-          finalIsFarcaster,
           userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
-          href: typeof window !== 'undefined' ? window.location.href : 'SSR',
-          windowParent: typeof window !== 'undefined' ? (window.parent === window ? 'same' : 'different') : 'SSR'
+          href: typeof window !== 'undefined' ? window.location.href : 'SSR'
         })
         
-        setIsFarcaster(finalIsFarcaster)
-      } catch (error) {
-        console.error('❌ Failed to get Farcaster context:', error)
-        
-        // Fallback detection: be conservative without context
-        // Only trust User Agent detection in fallback mode
-        const isMobileFarcaster = typeof window !== 'undefined' && 
-          window.navigator.userAgent.includes('FarcasterMobile')
-        
-        console.log('📱 Fallback detection - Mobile Farcaster only:', isMobileFarcaster)
+        // For now, let's be very conservative and only use Farcaster mode for mobile
+        // This ensures browser mode works correctly
         setIsFarcaster(isMobileFarcaster)
+        
+        if (isMobileFarcaster) {
+          console.log('🟣 Using Farcaster mode (mobile detected)')
+        } else {
+          console.log('🌐 Using Browser mode (default)')
+        }
+        
+      } catch (error) {
+        console.error('❌ Environment detection error:', error)
+        console.log('🌐 Defaulting to Browser mode')
+        setIsFarcaster(false)
       }
     }
 
     setMounted(true)
-    
-    // Add delay for mobile compatibility
-    const timer = setTimeout(checkFarcasterContext, 200)
-    
-    return () => clearTimeout(timer)
+    checkFarcasterContext()
   }, [])
 
   // Show loading during hydration
@@ -337,26 +297,36 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     // Farcaster Frame mode
     console.log('🟣 Using Farcaster MiniApp mode')
     return (
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <FarcasterWalletProvider>
-            {children}
-          </FarcasterWalletProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+      <OnchainKitProvider
+        apiKey={process.env.NEXT_PUBLIC_CDP_API_KEY || undefined}
+        chain={targetChain}
+      >
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <FarcasterWalletProvider>
+              {children}
+            </FarcasterWalletProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </OnchainKitProvider>
     )
   }
 
   // Browser mode with Base Account (via Wagmi)
   console.log('🌐 Using Browser mode with Base Account')
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <BrowserWalletProvider>
-          {children}
-        </BrowserWalletProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <OnchainKitProvider
+      apiKey={process.env.NEXT_PUBLIC_CDP_API_KEY || undefined}
+      chain={targetChain}
+    >
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserWalletProvider>
+            {children}
+          </BrowserWalletProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </OnchainKitProvider>
   )
 }
 
