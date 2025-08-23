@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { ConnectMenuSimple } from "./connect-menu-simple"
-import { useWallet } from "./providers/wallet-provider"
+import { useState, useEffect } from "react"
+import { IdentityConnect } from "./identity-connect-simple"
+import { useWallet } from "./providers/wallet-provider-simple"
 import Image from "next/image"
 
 interface HeaderProps {
@@ -20,15 +21,24 @@ interface HeaderProps {
 }
 
 export function Header({ showCreateButton = false, showExploreButton = false, backButton, customButtons, stepProgress }: HeaderProps) {
-  // Safe wallet context usage with SSR protection
-  let isConnected = false
+  const [clientMounted, setClientMounted] = useState(false)
+  
+  // Client-side mounting check
+  useEffect(() => {
+    setClientMounted(true)
+  }, [])
+
+  // Always call useWallet hook at top level - never conditional
+  let walletContext
   try {
-    const walletContext = useWallet()
-    isConnected = walletContext?.isConnected || false
+    walletContext = useWallet()
   } catch (error) {
-    // Handle SSR or provider not available
-    isConnected = false
+    // Handle provider not available during SSR
+    walletContext = { isConnected: false }
   }
+
+  // Only use wallet state after client has mounted to prevent hydration mismatch
+  const isConnected = clientMounted ? (walletContext?.isConnected || false) : false
   
   return (
     <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -108,8 +118,8 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
               </div>
             )}
 
-            {/* Wallet Connection - Environment aware */}
-            <ConnectMenuSimple />
+            {/* Wallet Connection - OnchainKit Identity */}
+            <IdentityConnect />
           </div>
         </nav>
       </div>
