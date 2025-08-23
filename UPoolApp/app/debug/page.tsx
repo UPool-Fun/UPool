@@ -1,7 +1,7 @@
 "use client"
 
 import { useWallet } from "@/components/providers/wallet-provider"
-import { ConnectMenu } from "@/components/connect-menu"
+import { ConnectMenuSimple } from "@/components/connect-menu-simple"
 import { useEffect, useState } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 
@@ -93,7 +93,7 @@ export default function DebugPage() {
         
         <div className="bg-emerald-50 p-4 rounded border">
           <h2 className="font-semibold text-emerald-800">🔗 Connect Menu Test:</h2>
-          <ConnectMenu />
+          <ConnectMenuSimple />
         </div>
         
         <div className="bg-red-50 p-4 rounded border">

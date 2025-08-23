@@ -1,6 +1,6 @@
 import { http, createConfig } from 'wagmi'
 import { base, baseSepolia } from 'wagmi/chains'
-import { injected, walletConnect } from 'wagmi/connectors'
+import { injected, walletConnect, baseAccount } from 'wagmi/connectors'
 
 // Get chain configuration from environment variables
 const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "84532")
@@ -42,6 +42,9 @@ export const config = createConfig({
   chains: [configuredChain],
   transports,
   connectors: [
+    baseAccount({
+      appName: 'UPool',
+    }),
     injected({
       shimDisconnect: true,
     }),

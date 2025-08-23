@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Users, TrendingUp, Search } from "lucide-react"
 import Link from "next/link"
+import { Header } from "@/components/header"
 
 const mockPools = [
   {
@@ -57,23 +58,7 @@ const mockPools = [
 export default function ExplorePools() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      {/* Header */}
-      <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">U</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">UPool</span>
-          </Link>
-          <Button
-            asChild
-            className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700"
-          >
-            <Link href="/create">Create Pool</Link>
-          </Button>
-        </div>
-      </header>
+      <Header showCreateButton={true} showExploreButton={false} />
 
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
