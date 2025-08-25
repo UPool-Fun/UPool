@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { IdentityConnect } from "./identity-connect-simple"
-import { useWallet } from "./providers/wallet-provider-simple"
+import { DualConnect } from "./dual-connect"
+import { useWallet } from '@/components/providers/dual-wallet-provider'
 import Image from "next/image"
 
 interface HeaderProps {
@@ -28,17 +28,18 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
     setClientMounted(true)
   }, [])
 
-  // Always call useWallet hook at top level - never conditional
-  let walletContext
+  // Safely get wallet state - handle case where provider isn't available
+  let walletConnected = false;
   try {
-    walletContext = useWallet()
-  } catch (error) {
-    // Handle provider not available during SSR
-    walletContext = { isConnected: false }
+    const wallet = useWallet();
+    walletConnected = wallet.isConnected;
+  } catch {
+    // Provider not available - use disconnected state
+    walletConnected = false;
   }
 
   // Only use wallet state after client has mounted to prevent hydration mismatch
-  const isConnected = clientMounted ? (walletContext?.isConnected || false) : false
+  const isConnected = clientMounted ? walletConnected : false
   
   return (
     <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -66,14 +67,17 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
 
         <nav className="flex items-center space-x-4">
           {/* Navigation Links - Hidden on mobile for space */}
-          {/* <div className="hidden md:flex items-center space-x-6">
-            <Link href="#how-it-works" className="text-gray-600 hover:text-blue-600 transition-colors">
-              How it works
-            </Link>
+          <div className="hidden md:flex items-center space-x-6">
             <Link href="/explore" className="text-gray-600 hover:text-blue-600 transition-colors">
               Explore Pools
             </Link>
-          </div> */}
+            <Link href="/contracts" className="text-gray-600 hover:text-blue-600 transition-colors">
+              Smart Contracts
+            </Link>
+            <Link href="/debug" className="text-gray-600 hover:text-blue-600 transition-colors">
+              Debug
+            </Link>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
@@ -118,8 +122,8 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
               </div>
             )}
 
-            {/* Wallet Connection - OnchainKit Identity */}
-            <IdentityConnect />
+            {/* Wallet Connection - Dual Environment */}
+            <DualConnect />
           </div>
         </nav>
       </div>

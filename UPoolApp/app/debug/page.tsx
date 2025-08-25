@@ -1,7 +1,7 @@
 "use client"
 
-import { useWallet } from "@/components/providers/wallet-provider-simple"
-import { IdentityConnect } from "@/components/identity-connect-simple"
+import { useWallet } from "@/components/providers/dual-wallet-provider"
+import { DualConnect } from "@/components/dual-connect"
 import { WalletDebug } from "@/components/wallet-debug"
 import { useEffect, useState } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
@@ -98,8 +98,8 @@ export default function DebugPage() {
         </div>
         
         <div className="bg-emerald-50 p-4 rounded border">
-          <h2 className="font-semibold text-emerald-800">🔗 Identity Connect Test:</h2>
-          <IdentityConnect />
+          <h2 className="font-semibold text-emerald-800">🔗 Dual Connect Test:</h2>
+          <DualConnect />
         </div>
         
         <div className="bg-red-50 p-4 rounded border">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useAccount } from 'wagmi'
-import { useWallet } from '@/components/providers/wallet-provider'
+import { useWallet } from '@/components/providers/dual-wallet-provider'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,9 @@ import { PoolData } from '@/lib/firestore-schema'
 import { toast } from 'sonner'
 import MilestoneManager from '@/components/milestone-manager'
 import { Header } from '@/components/header'
+import { WalletAddressCard } from '@/components/wallet-address-card'
+import { CurrencySelector } from '@/components/currency-selector'
+import { PoolCurrency } from '@/lib/firestore-schema'
 
 interface Milestone {
   id: string
@@ -57,6 +60,7 @@ export default function CreatePool() {
     title: "",
     description: "",
     fundingGoal: "",
+    currency: "USDC" as const, // Default to USDC
     milestones: [] as Milestone[],
     visibility: "private" as const,
     approvalMethod: "majority" as const,
@@ -95,7 +99,7 @@ export default function CreatePool() {
     }
   }, [walletAddress, mounted, clientMounted])
 
-  const totalSteps = 7
+  const totalSteps = 8
   const progress = (currentStep / totalSteps) * 100
 
   // Load existing draft from Firebase
@@ -164,14 +168,33 @@ export default function CreatePool() {
 
     try {
       setPaymentStatus('processing')
-      setPaymentStatusMessage('Initiating payment...')
+      setPaymentStatusMessage('Creating pool wallet...')
       
-      // Update pool status to payment processing
+      // Step 1: Create CDP Server Wallet for the pool
+      console.log('🔑 Creating pool wallet via CDP...')
+      const walletResponse = await fetch('/api/pool/create-wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ poolId })
+      })
+      
+      if (!walletResponse.ok) {
+        const errorData = await walletResponse.json()
+        throw new Error(errorData.error || 'Failed to create pool wallet')
+      }
+      
+      const walletData = await walletResponse.json()
+      console.log('✅ Pool wallet created:', walletData.walletAddress)
+      
+      setPaymentStatusMessage('Pool wallet created! Initiating payment...')
+      
+      // Step 2: Update pool status to payment processing
       await PoolService.markPaymentProcessing(poolId, 'pending')
       
       // Log wallet context for debugging
       console.log('Base Pay Context:', {
         poolId,
+        poolWalletAddress: walletData.walletAddress,
         walletAddress,
         wagmiAddress,
         isFarcaster,
@@ -179,33 +202,32 @@ export default function CreatePool() {
         userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi'
       })
       
-      // Base Pay works independently of wallet connection type
-      // The pay() function handles wallet interaction internally
+      // Step 3: Base Pay to the pool wallet (not dummy address)
       const { id } = await pay({
         amount: '0.01', // USD – SDK automatically converts to USDC
-        to: '0x1234567890123456789012345678901234567890', // Dummy recipient for demo
+        to: walletData.walletAddress, // Send to actual pool wallet
         testnet: true // Use Base Sepolia testnet
       });
 
       setPaymentId(id);
       
-      // Update pool with payment ID
+      // Step 4: Update pool with payment ID
       await PoolService.markPaymentProcessing(poolId, id)
       
       setPaymentStatus('success')
-      setPaymentStatusMessage('✅ Payment initiated successfully! Click "Check Status" to see the result.')
+      setPaymentStatusMessage('✅ Payment initiated successfully! Pool wallet funded.')
       
-      toast.success('Payment initiated successfully!')
+      toast.success('Payment initiated successfully! Pool wallet created and funded.')
       
       console.log('Base Pay payment completed:', {
         paymentId: id,
         amount: '0.01 USD → USDC',
         poolTitle: poolData.title,
         poolId,
+        poolWalletAddress: walletData.walletAddress,
         userWallet: walletAddress,
         wagmiWallet: wagmiAddress,
-        userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi',
-        recipient: '0x1234567890123456789012345678901234567890'
+        userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi'
       })
     } catch (error) {
       console.error('Base Pay error:', error)
@@ -221,6 +243,8 @@ export default function CreatePool() {
         toast.error('Insufficient funds. Please add funds to your account.')
       } else if (errorMessage.toLowerCase().includes('network')) {
         toast.error('Network error. Please check your connection and try again.')
+      } else if (errorMessage.toLowerCase().includes('wallet')) {
+        toast.error('Failed to create pool wallet. Please try again.')
       } else {
         toast.error(`Payment failed: ${errorMessage}`)
       }
@@ -253,7 +277,7 @@ export default function CreatePool() {
   const nextStep = async () => {
     if (currentStep < totalSteps) {
       // Validate current step before proceeding
-      if (currentStep === 2) {
+      if (currentStep === 3) {
         // Validate milestones
         const totalPercentage = poolData.milestones.reduce((sum, m) => sum + m.percentage, 0)
         if (totalPercentage !== 100) {
@@ -304,20 +328,22 @@ export default function CreatePool() {
                 rows={4}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="goal">Funding Goal (ETH)</Label>
-              <Input
-                id="goal"
-                type="number"
-                placeholder="10.0"
-                value={poolData.fundingGoal}
-                onChange={(e) => setPoolData((prev) => ({ ...prev, fundingGoal: e.target.value }))}
-              />
-            </div>
           </div>
         )
 
       case 2:
+        return (
+          <CurrencySelector
+            fundingGoal={poolData.fundingGoal}
+            currency={poolData.currency}
+            onCurrencyChange={(currency: PoolCurrency) => 
+              setPoolData((prev) => ({ ...prev, currency }))}
+            onFundingGoalChange={(amount: string) => 
+              setPoolData((prev) => ({ ...prev, fundingGoal: amount }))}
+          />
+        )
+
+      case 3:
         return (
           <MilestoneManager
             milestones={poolData.milestones}
@@ -326,7 +352,7 @@ export default function CreatePool() {
           />
         )
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Pool Visibility</h3>
@@ -375,7 +401,7 @@ export default function CreatePool() {
           </div>
         )
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Join Approval Method</h3>
@@ -415,7 +441,7 @@ export default function CreatePool() {
           </div>
         )
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Pool Identity</h3>
@@ -449,7 +475,7 @@ export default function CreatePool() {
           </div>
         )
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Risk Strategy</h3>
@@ -501,7 +527,7 @@ export default function CreatePool() {
           </div>
         )
 
-      case 7:
+      case 8:
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Initial Pool Deposit</h3>
@@ -546,6 +572,16 @@ export default function CreatePool() {
                           <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-md inline-block">
                             {isFarcaster ? 'Farcaster' : 'Wagmi'} Wallet: {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
                           </div>
+                        </div>
+
+                        {/* Wallet Address Card for sharing */}
+                        <div className="my-6">
+                          <WalletAddressCard
+                            address={walletAddress}
+                            title="Your Pool Wallet"
+                            description="Share this address so others can contribute directly to your pool"
+                            isFarcaster={isFarcaster}
+                          />
                         </div>
 
                         {paymentStatus === 'idle' && (
@@ -745,12 +781,13 @@ export default function CreatePool() {
             <CardHeader>
               <CardTitle className="text-2xl text-center">
                 {currentStep === 1 && "Pool Details"}
-                {currentStep === 2 && "Add Milestones"}
-                {currentStep === 3 && "Visibility Settings"}
-                {currentStep === 4 && "Approval Method"}
-                {currentStep === 5 && "Pool Identity"}
-                {currentStep === 6 && "Risk Strategy"}
-                {currentStep === 7 && "Initial Deposit"}
+                {currentStep === 2 && "Currency & Amount"}
+                {currentStep === 3 && "Add Milestones"}
+                {currentStep === 4 && "Visibility Settings"}
+                {currentStep === 5 && "Approval Method"}
+                {currentStep === 6 && "Pool Identity"}
+                {currentStep === 7 && "Risk Strategy"}
+                {currentStep === 8 && "Initial Deposit"}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">{renderStep()}</CardContent>
@@ -787,7 +824,7 @@ export default function CreatePool() {
               <Button 
                 onClick={nextStep}
                 disabled={
-                  currentStep === 2 && (
+                  currentStep === 3 && (
                     poolData.milestones.length === 0 || 
                     poolData.milestones.reduce((sum, m) => sum + m.percentage, 0) !== 100
                   )

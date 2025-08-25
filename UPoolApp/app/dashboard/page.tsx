@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useWallet } from '@/components/providers/wallet-provider'
+import { useWallet } from '@/components/providers/dual-wallet-provider'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Users, TrendingUp, Plus, ArrowRight, Wallet, Clock, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { Header } from "@/components/header"
+import { WagmiWalletInfo } from "@/components/wagmi-wallet-info"
 import { PoolService } from '@/lib/pool-service'
 import { PoolDocument } from '@/lib/firestore-schema'
 
@@ -201,6 +202,11 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
+          </div>
+
+          {/* Debug Info */}
+          <div className="mb-6">
+            <WagmiWalletInfo />
           </div>
 
           {/* Stats Overview */}

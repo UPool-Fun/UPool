@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Metadata } from 'next'
-import { Header } from '@/components/header'
+// Remove header temporarily for static rendering
+// import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -97,7 +98,7 @@ export default function SupportPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-        <Header showCreateButton={true} showExploreButton={true} />
+        {/* Header removed for static rendering */}
         
         <div className="container mx-auto px-4 py-16 max-w-2xl">
           <Card className="text-center">
@@ -147,7 +148,7 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      <Header showCreateButton={true} showExploreButton={true} />
+      {/* Header removed for static rendering */}
       
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         <div className="grid lg:grid-cols-3 gap-8">
