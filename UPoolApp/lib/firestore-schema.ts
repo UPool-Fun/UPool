@@ -8,11 +8,15 @@ export interface Milestone {
   percentage: number
 }
 
+// Supported pool currencies
+export type PoolCurrency = 'ETH' | 'USDC' | 'EURC'
+
 // Pool data interface matching the create flow
 export interface PoolData {
   title: string
   description: string
   fundingGoal: string
+  currency: PoolCurrency
   milestones: Milestone[]
   visibility: 'private' | 'link' | 'public'
   approvalMethod: 'majority' | 'percentage' | 'number' | 'creator'
@@ -29,6 +33,12 @@ export interface PoolDocument {
   creatorFid?: string // Farcaster ID if available
   status: 'draft' | 'pending_payment' | 'payment_processing' | 'active' | 'completed' | 'cancelled'
   poolData: PoolData
+  
+  // Pool wallet information (CDP Server Wallet)
+  poolWalletId?: string
+  poolWalletAddress?: string
+  poolWalletMnemonic?: string // Encrypted in production
+  poolWalletSeed?: string // Encrypted in production
   
   // Payment tracking
   paymentId?: string

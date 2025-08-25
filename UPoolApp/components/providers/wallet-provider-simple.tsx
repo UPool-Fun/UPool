@@ -19,7 +19,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   
   return (
     <OnchainKitProvider
-      apiKey={process.env.NEXT_PUBLIC_CDP_API_KEY || undefined}
+      apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY || process.env.NEXT_PUBLIC_CDP_API_KEY || undefined}
       chain={targetChain}
     >
       <WagmiProvider config={config}>
@@ -99,6 +99,7 @@ function BrowserWallet({ children }: { children: ReactNode }) {
   }
 
   console.log('🌐 BrowserWallet state:', { isConnected, address })
+  console.log('🔌 Available connectors:', connectors.map(c => ({ id: c.id, name: c.name })))
 
   return (
     <WalletContext.Provider value={contextValue}>

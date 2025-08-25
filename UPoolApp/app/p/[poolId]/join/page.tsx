@@ -176,7 +176,7 @@ export default function JoinPool({ params }: { params: { poolId: string } }) {
                     ) : (
                       <>
                         <Wallet className="w-4 h-4 mr-2" />
-                        Connect Wallet
+                        Join
                       </>
                     )}
                   </Button>

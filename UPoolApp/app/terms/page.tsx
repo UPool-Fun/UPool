@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import { Header } from '@/components/header'
+// Header removed for static rendering
+// import { Header } from '@/components/header'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      <Header showCreateButton={true} showExploreButton={true} />
+      {/* Header removed for static rendering */}
       
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         <div className="bg-white rounded-lg shadow-lg p-8">

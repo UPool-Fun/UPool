@@ -2,7 +2,7 @@ import type React from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { WalletProvider } from '@/components/providers/wallet-provider-simple';
+import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -125,10 +125,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
-        <WalletProvider>
+        <Providers>
           {children}
           <Toaster />
-        </WalletProvider>
+        </Providers>
       </body>
     </html>
   );

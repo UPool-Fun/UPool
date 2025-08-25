@@ -33,11 +33,27 @@ async function main() {
     contracts: {},
   };
 
+  // Deployment configuration
+  const treasury = deployer.address; // Use deployer as treasury for testing
+  const poolCreationFee = ethers.parseEther("0.001"); // 0.001 ETH
+  const maxPoolsPerCreator = 50; // Increased limit for production
+
+  console.log("⚙️ Configuration:");
+  console.log("   Treasury:", treasury);
+  console.log("   Pool creation fee:", ethers.formatEther(poolCreationFee), "ETH");
+  console.log("   Max pools per creator:", maxPoolsPerCreator);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
   try {
-    // Example: Deploy a sample contract (replace with actual UPool contracts)
-    console.log("📦 Deploying UPoolRegistry...");
+    // Step 1: Deploy UPoolRegistry
+    console.log("📦 Step 1: Deploying UPoolRegistry...");
     const UPoolRegistry = await ethers.getContractFactory("UPoolRegistry");
-    const registry = await UPoolRegistry.deploy();
+    const registry = await UPoolRegistry.deploy(
+      deployer.address, // initial owner
+      treasury,
+      poolCreationFee,
+      maxPoolsPerCreator
+    );
     await registry.waitForDeployment();
     
     const registryAddress = await registry.getAddress();
@@ -47,12 +63,79 @@ async function main() {
       address: registryAddress,
       txHash: registryTx?.hash || "",
       blockNumber: registryTx?.blockNumber || 0,
-      args: [],
+      args: [deployer.address, treasury, poolCreationFee.toString(), maxPoolsPerCreator],
     };
 
     console.log("✅ UPoolRegistry deployed to:", registryAddress);
     console.log("🧾 Transaction hash:", registryTx?.hash);
-    console.log("🧱 Block number:", registryTx?.blockNumber);
+
+    // Step 2: Deploy UPoolYieldStrategy
+    console.log("📦 Step 2: Deploying UPoolYieldStrategy...");
+    const UPoolYieldStrategy = await ethers.getContractFactory("UPoolYieldStrategy");
+    const yieldStrategy = await UPoolYieldStrategy.deploy(
+      treasury, // treasury for yield fees
+      deployer.address // initial owner
+    );
+    await yieldStrategy.waitForDeployment();
+    
+    const yieldStrategyAddress = await yieldStrategy.getAddress();
+    const yieldStrategyTx = yieldStrategy.deploymentTransaction();
+    
+    deploymentInfo.contracts.UPoolYieldStrategy = {
+      address: yieldStrategyAddress,
+      txHash: yieldStrategyTx?.hash || "",
+      blockNumber: yieldStrategyTx?.blockNumber || 0,
+      args: [treasury, deployer.address],
+    };
+
+    console.log("✅ UPoolYieldStrategy deployed to:", yieldStrategyAddress);
+    console.log("🧾 Transaction hash:", yieldStrategyTx?.hash);
+
+    // Step 3: Deploy UPoolFactory
+    console.log("📦 Step 3: Deploying UPoolFactory...");
+    const UPoolFactory = await ethers.getContractFactory("UPoolFactory");
+    const factory = await UPoolFactory.deploy(
+      registryAddress,  // registry address
+      treasury,         // treasury for fees
+      poolCreationFee,  // creation fee
+      deployer.address  // initial owner
+    );
+    await factory.waitForDeployment();
+    
+    const factoryAddress = await factory.getAddress();
+    const factoryTx = factory.deploymentTransaction();
+    
+    deploymentInfo.contracts.UPoolFactory = {
+      address: factoryAddress,
+      txHash: factoryTx?.hash || "",
+      blockNumber: factoryTx?.blockNumber || 0,
+      args: [registryAddress, treasury, poolCreationFee.toString(), deployer.address],
+    };
+
+    console.log("✅ UPoolFactory deployed to:", factoryAddress);
+    console.log("🧾 Transaction hash:", factoryTx?.hash);
+
+    // Step 4: Verify deployment and show configuration
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔍 Verifying deployment...");
+    
+    // Verify Registry
+    const registryVersion = await registry.VERSION();
+    const registryOwner = await registry.owner();
+    console.log("   Registry version:", registryVersion);
+    console.log("   Registry owner:", registryOwner);
+    
+    // Verify Yield Strategy
+    const yieldVersion = await yieldStrategy.VERSION();
+    const strategiesCount = (await yieldStrategy.getAllStrategies()).length;
+    console.log("   Yield strategy version:", yieldVersion);
+    console.log("   Default strategies:", strategiesCount);
+    
+    // Verify Factory
+    const factoryVersion = await factory.VERSION();
+    const templatesCount = (await factory.getAllTemplates()).length;
+    console.log("   Factory version:", factoryVersion);
+    console.log("   Default templates:", templatesCount);
 
     // Save deployment info
     const deploymentsDir = path.join(__dirname, "../deployments");

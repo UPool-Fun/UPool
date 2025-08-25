@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,67 +12,92 @@ import Link from "next/link"
 import { TrustBadge } from "@/components/trust-badge"
 import { DepositWithdrawWidget } from "@/components/deposit-withdraw-widget"
 import { MilestoneTracker } from "@/components/milestone-tracker"
+import { WalletAddressCard } from "@/components/wallet-address-card"
 
-// Mock data - in real app this would come from props/API
-const poolData = {
-  id: "skytrip",
-  title: "Sky Trip to Japan",
-  description: "Our group trip to Japan in spring 2024. Pooling funds for flights, accommodation, and activities.",
-  fundingGoal: 12000,
-  currentAmount: 8400,
-  yieldEarned: 201,
-  yieldRate: 2.4,
-  protocol: "Aave",
-  members: 12,
-  creator: "alice.eth",
-  vanityUrl: "upool.fun/p/skytrip",
-  milestones: [
-    {
-      id: 1,
-      title: "Book Flights",
-      description: "Book round-trip flights for all members",
-      percentage: 40,
-      amount: 4800,
-      status: "completed" as const,
-      completedAt: "Jan 15, 2024",
-    },
-    {
-      id: 2,
-      title: "Reserve Accommodation",
-      description: "Book hotels and Airbnb for the entire trip",
-      percentage: 35,
-      amount: 4200,
-      status: "pending-vote" as const,
-      votesFor: 7,
-      votesAgainst: 2,
-      totalVoters: 12,
-    },
-    {
-      id: 3,
-      title: "Activities & Food",
-      description: "Budget for activities, dining, and miscellaneous expenses",
-      percentage: 25,
-      amount: 3000,
-      status: "locked" as const,
-    },
-  ],
-  membersList: [
-    { name: "Alice", address: "alice.eth", role: "creator", contributed: 1200 },
-    { name: "Bob", address: "bob.eth", role: "member", contributed: 800 },
-    { name: "Carol", address: "carol.eth", role: "member", contributed: 950 },
-    { name: "Dave", address: "dave.eth", role: "member", contributed: 600 },
-    { name: "Eve", address: "eve.eth", role: "member", contributed: 750 },
-  ],
+// Pool data interface
+interface PoolData {
+  id: string
+  title: string
+  description: string
+  fundingGoal: number
+  currentAmount: number
+  yieldEarned: number
+  yieldRate: number
+  protocol: string
+  members: number
+  creator?: string
+  creatorAddress?: string
+  poolWalletAddress?: string
+  vanityUrl: string
+  milestones: Array<{
+    id: string
+    title: string
+    description: string
+    percentage: number
+    amount?: number
+    status?: "completed" | "pending-vote" | "locked"
+    completedAt?: string
+    votesFor?: number
+    votesAgainst?: number
+    totalVoters?: number
+  }>
+  membersList?: Array<{
+    name: string
+    address: string
+    role: string
+    contributed: number
+  }>
+  status?: string
+  paymentStatus?: string
+  riskStrategy?: string
+  approvalMethod?: string
+  approvalThreshold?: string
+  createdAt?: string
 }
 
 export default function PoolDashboard() {
+  const params = useParams()
+  const poolId = params.id as string
+  
+  const [poolData, setPoolData] = useState<PoolData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showQR, setShowQR] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
-  const inviteLink = `upool.fun/p/${poolData.id}/join`
   const [userBalance] = useState(2.5) // Mock user wallet balance
   const [userContribution, setUserContribution] = useState(1.2) // Mock user contribution to this pool
   const [userRole] = useState<"creator" | "member">("member") // Mock user role
-  const [milestones, setMilestones] = useState(poolData.milestones)
+  const [milestones, setMilestones] = useState<any[]>([])
+  
+  const inviteLink = poolData ? `upool.fun/p/${poolData.id}/join` : ''
+
+  // Fetch pool data
+  useEffect(() => {
+    const fetchPoolData = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/pool/${poolId}`)
+        
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to fetch pool')
+        }
+        
+        const data = await response.json()
+        setPoolData(data)
+        setMilestones(data.milestones || [])
+      } catch (err) {
+        console.error('Error fetching pool:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load pool')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    if (poolId) {
+      fetchPoolData()
+    }
+  }, [poolId])
 
   const handleDeposit = (amount: number) => {
     console.log(`Depositing ${amount} ETH`)
@@ -96,6 +122,46 @@ export default function PoolDashboard() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
+  }
+
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading pool details...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Pool Not Found</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Link href="/explore">
+            <Button>Explore Other Pools</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+  
+  if (!poolData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Pool Not Found</h1>
+          <p className="text-gray-600 mb-4">The requested pool could not be found.</p>
+          <Link href="/explore">
+            <Button>Explore Other Pools</Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   const pendingVoteMilestone = milestones.find((m) => m.status === "pending-vote")
@@ -379,6 +445,19 @@ export default function PoolDashboard() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600">Share this link with friends to invite them to join your pool</p>
+                
+                {/* Pool Wallet Address for Direct Contributions */}
+                <div className="mt-6">
+                  {poolData.poolWalletAddress && (
+                    <WalletAddressCard
+                      address={poolData.poolWalletAddress}
+                      title="Pool Wallet Address"
+                      description="Send funds directly to this pool's dedicated wallet"
+                      isFarcaster={false}
+                      className="border-solid border-green-200 bg-green-50/50"
+                    />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

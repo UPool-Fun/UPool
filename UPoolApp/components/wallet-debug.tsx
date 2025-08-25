@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useWallet } from '@/components/providers/wallet-provider-simple'
+import { useWallet } from '@/components/providers/dual-wallet-provider'
 
 export function WalletDebug() {
   const [mounted, setMounted] = useState(false)
@@ -17,15 +17,17 @@ export function WalletDebug() {
 
   try {
     const wallet = useWallet()
+    
     return (
       <div className="p-4 bg-green-100 rounded">
-        <h3 className="font-bold">✅ Wallet Context Available</h3>
+        <h3 className="font-bold">✅ Dual Wallet System Available</h3>
         <pre className="text-xs mt-2 bg-white p-2 rounded">
           {JSON.stringify({
             isConnected: wallet.isConnected,
             address: wallet.address,
             isConnecting: wallet.isConnecting,
             isFarcaster: wallet.isFarcaster,
+            environmentReady: wallet.environmentReady,
             connectFn: typeof wallet.connect,
             disconnectFn: typeof wallet.disconnect
           }, null, 2)}
