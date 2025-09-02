@@ -1,8 +1,8 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjExMzk5OTgsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg2QjdCRkFlNEVCMkI2YjU2NjM2OGZhYkRjMTY1N0QwNWE2Yjc0MUVlIn0",
+    "header": "eyJmaWQiOjIxMDY3MSwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDFCMTQ4OTFmNEU2QkQ4NTY1NmZiN0YyN0M0MGZkMWQ2NmRkNzZkMkIifQ",
     "payload": "eyJkb21haW4iOiJ1cG9vbC5mdW4ifQ",
-    "signature": "MHhkOTIzZjg0NTg2OTc1MTRhZDBhMmU3OTRjYjhiOWMyZTIzZDhmOTY4MDA0Y2Q2OTk1ZDZkMGEwZDU4MzZmYzgzNzM0YTMxNWZiNmIwMWM2YTY3ODUyMjI3MTA3YjBkY2Y3YTRhNjc1YmNkZGFhMDZlNGMyZGJlMmY0YzI1ZTg5ZjFj"
+    "signature": "xRKd8G5TcRpwWLiScg0COuJ64JytZBGBFkHzAKQbBclvbX7+tZ7uVjSR3LlzXFm+ayg8waSZ5Pt7EsFj0fzjoBw="
   },
   "frame": {
     "name": "UPool",
@@ -23,5 +23,6 @@
     "primaryCategory": "finance",
     "description": "UPool is a social app that lets friends and communities pool money, grow it with yield, and unlock it through milestone-based voting and trust.",
     "subtitle": "Fund it. Prove it. Unlock it.",
-    "heroImageUrl": "https://upool.fun/hero.png"
+    "heroImageUrl": "https://upool.fun/hero.png",
+    "ogImageUrl": "https://upool.fun/icon.png"
   }}
