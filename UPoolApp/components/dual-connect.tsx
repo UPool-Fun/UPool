@@ -82,19 +82,31 @@ export function DualConnect({ size = 'default' }: DualConnectProps) {
   if (isFarcaster && address.startsWith('farcaster:')) {
     const fid = address.replace('farcaster:', '')
     return (
-      <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg">
+      <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
         <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
           <span className="text-white text-xs font-bold">FC</span>
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-medium">FID {fid}</span>
-          <span className="text-xs text-gray-500">Farcaster</span>
+          <span className="text-xs text-blue-600">Farcaster User</span>
         </div>
+        {/* Try again button to attempt getting wallet address */}
+        <Button
+          onClick={connect}
+          size="sm"
+          variant="outline"
+          className="text-xs px-2 py-1 h-6 border-blue-300 text-blue-600 hover:bg-blue-100"
+          disabled={isConnecting}
+          title="Try to get wallet address for blockchain features"
+        >
+          {isConnecting ? '...' : 'Get Wallet'}
+        </Button>
         <Button
           onClick={disconnect}
           size="sm"
           variant="ghost"
           className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+          title="Disconnect"
         >
           ×
         </Button>
