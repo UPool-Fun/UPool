@@ -82,10 +82,12 @@ function useEnvironmentDetection() {
           window.navigator.userAgent.includes('FarcasterMobile')
         console.log('🎯 Mobile Farcaster UA:', isMobileFarcaster)
 
-        // Final determination - be more strict about what constitutes Farcaster environment
-        const finalIsFarcaster = sdkAvailable && (isInMiniApp || hasValidContext) && isMobileFarcaster
+        // Final determination - prioritize SDK context over user agent
+        // If we have valid Farcaster context (clientFid), we're in Farcaster regardless of user agent
+        const finalIsFarcaster = sdkAvailable && (isInMiniApp || hasValidContext)
         console.log('🎯 Final environment detection - isFarcaster:', finalIsFarcaster)
         console.log('🎯 Decision factors:', { sdkAvailable, isInMiniApp, hasValidContext, isMobileFarcaster })
+        console.log('🎯 FIXED: Removed mobile user agent requirement - context is sufficient')
 
         setIsFarcaster(finalIsFarcaster)
         setEnvironmentReady(true)
@@ -186,17 +188,43 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
-    // Check if already signed in
+    // Check if already signed in - this should happen immediately in Farcaster
     const checkFarcasterAuth = async () => {
       try {
-        const context = await sdk.context
-        if (context?.user?.fid) {
-          setFarcasterAddress(`farcaster:${context.user.fid}`)
+        console.log('🔍 FarcasterWallet: Checking existing auth state...')
+        
+        const context = await Promise.race([
+          sdk.context,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Context timeout')), 1000))
+        ])
+        
+        console.log('🎯 FarcasterWallet context:', context)
+        
+        // Check multiple possible user identification patterns
+        const userId = context?.user?.fid || context?.client?.clientFid || context?.user?.userId
+        const isAuthenticated = !!(userId || context?.user?.isAuthenticated)
+        
+        if (userId) {
+          setFarcasterAddress(`farcaster:${userId}`)
           setIsConnected(true)
-          console.log('✅ Already authenticated with Farcaster:', context.user.fid)
+          console.log('✅ Already authenticated with Farcaster FID:', userId)
+        } else if (isAuthenticated) {
+          // User is authenticated but no FID available - use generic identifier
+          setFarcasterAddress('farcaster:authenticated')
+          setIsConnected(true)
+          console.log('✅ Authenticated with Farcaster (no FID available)')
+        } else {
+          console.log('ℹ️ User not authenticated in Farcaster - auth required')
         }
       } catch (error) {
-        console.log('ℹ️ Not authenticated with Farcaster')
+        console.log('ℹ️ Farcaster auth check failed:', error.message)
+        // In Farcaster environment, try to connect anyway since user might be logged in
+        console.log('🔄 Attempting auto-connect in Farcaster environment...')
+        setTimeout(() => {
+          if (!isConnected) {
+            connect()
+          }
+        }, 500)
       }
     }
 
