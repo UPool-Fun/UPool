@@ -180,14 +180,14 @@ export default function PoolDashboard() {
         backButton={{ href: "/explore", text: "Back to Explore" }}
         customButtons={
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={() => copyToClipboard(poolData.vanityUrl)}>
+            {/* <Button variant="outline" size="sm" onClick={() => copyToClipboard(poolData.vanityUrl)}>
               <Copy className="w-4 h-4 mr-2" />
               Copy Link
             </Button>
             <Button variant="outline" size="sm" onClick={() => setShowQR(!showQR)}>
               <QrCode className="w-4 h-4 mr-2" />
               QR Code
-            </Button>
+            </Button> */}
           </div>
         }
       />

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { IdentityCard } from '@coinbase/onchainkit/identity'
+import { Identity, Avatar, Name } from '@coinbase/onchainkit/identity'
 import { Button } from '@/components/ui/button'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { detectEnvironment } from '@/lib/utils/environment-detection'
@@ -156,26 +156,28 @@ export function DualConnect({ size = 'default' }: DualConnectProps) {
     )
   }
 
-  // For Ethereum addresses, use OnchainKit Identity
+  // For Ethereum addresses, use OnchainKit Identity (compact version)
   if (address.startsWith('0x')) {
     return (
-      <div className="relative">
-        <div className="flex items-center space-x-2 p-2">
-          <IdentityCard
-            address={address as `0x${string}`}
-            chain={baseSepolia}
-            schemaId="0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
-          />
-          <Button
-            onClick={disconnect}
-            size="sm"
-            variant="ghost"
-            className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
-            title="Disconnect wallet"
-          >
-            <LogOut className="h-3 w-3" />
-          </Button>
-        </div>
+      <div className="flex items-center space-x-2">
+        <Identity
+          address={address as `0x${string}`}
+          chain={baseSepolia}
+          schemaId="0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
+          className="flex items-center space-x-2 max-w-[200px] rounded-lg py-2"
+        >
+          <Avatar className="w-6 h-6" />
+          <Name className="text-sm font-medium truncate" />
+        </Identity>
+        <Button
+          onClick={disconnect}
+          size="sm"
+          variant="ghost"
+          className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 ml-1"
+          title="Disconnect wallet"
+        >
+          <LogOut className="h-3 w-3" />
+        </Button>
       </div>
     )
   }
