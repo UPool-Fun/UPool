@@ -3,6 +3,7 @@
 import { useWallet } from "@/components/providers/dual-wallet-provider"
 import { DualConnect } from "@/components/dual-connect"
 import { WalletDebug } from "@/components/wallet-debug"
+import { WalletDebugInfo } from "@/components/wallet-debug-info"
 import { useEffect, useState } from "react"
 import { sdk } from "@farcaster/miniapp-sdk"
 
@@ -95,6 +96,13 @@ export default function DebugPage() {
         <div className="bg-orange-50 p-4 rounded border">
           <h2 className="font-semibold text-orange-800">🔧 Wallet Context Debug:</h2>
           <WalletDebug />
+        </div>
+        
+        <div className="bg-indigo-50 p-4 rounded border">
+          <h2 className="font-semibold text-indigo-800">🆔 Wallet Debug Info (Enhanced):</h2>
+          <div className="mt-2">
+            <WalletDebugInfo />
+          </div>
         </div>
         
         <div className="bg-emerald-50 p-4 rounded border">
