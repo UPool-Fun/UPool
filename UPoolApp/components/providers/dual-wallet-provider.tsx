@@ -236,25 +236,22 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
           setIsConnected(true)
           console.log('✅ Using Farcaster wallet address:', walletAddress)
         } else if (userId) {
-          // If no wallet address found, try to get it through signIn
-          console.log('⚠️ No valid wallet address found, attempting signIn to get address...')
-          setTimeout(() => {
-            if (!isConnected) {
-              connect() // This will call signIn and try to get the wallet address
-            }
-          }, 500)
+          // User is authenticated in Farcaster but no wallet address available
+          // This is expected in many Farcaster environments - user is logged in with FID only
+          console.log('ℹ️ Farcaster user authenticated but no wallet address in context')
+          console.log('🔍 Using FID format - some blockchain features may be unavailable')
+          setFarcasterAddress(`farcaster:${userId}`)
+          setIsConnected(true)
+          // Don't automatically try to call signIn - wait for user action
+          console.log('✅ Connected with Farcaster FID (limited blockchain functionality):', userId)
         } else {
-          console.log('ℹ️ User not authenticated in Farcaster - auth required')
+          console.log('ℹ️ User not authenticated in Farcaster - manual auth may be required')
         }
       } catch (error) {
         console.log('ℹ️ Farcaster auth check failed:', error.message)
-        // In Farcaster environment, try to connect anyway since user might be logged in
-        console.log('🔄 Attempting auto-connect in Farcaster environment...')
-        setTimeout(() => {
-          if (!isConnected) {
-            connect()
-          }
-        }, 500)
+        // Don't automatically try to connect if context check fails
+        // Wait for user to manually trigger connection
+        console.log('⚠️ Context check failed - connection will require manual user action')
       }
     }
 
@@ -263,14 +260,44 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
 
   const connect = async () => {
     try {
-      console.log('🔌 Farcaster: Authenticating with Mini App...')
+      console.log('🔌 Farcaster: Manual authentication requested...')
       setIsConnecting(true)
       
       // Check if SDK methods are available before using them
       if (!sdk || !sdk.actions || typeof sdk.actions.signIn !== 'function') {
         throw new Error('Farcaster SDK not properly initialized or signIn method not available')
       }
+
+      // Check if we already have a context with user info - might not need signIn
+      let currentContext
+      try {
+        currentContext = await sdk.context
+        console.log('🎯 Current context before signIn:', currentContext)
+        
+        // If we already have user info, maybe we don't need to call signIn
+        const existingUserId = currentContext?.user?.fid || currentContext?.client?.clientFid
+        if (existingUserId) {
+          console.log('ℹ️ User already authenticated, attempting to extract wallet address...')
+          // Try to get wallet address from existing context first
+          const existingWalletAddress = 
+            currentContext?.user?.wallet?.address ||
+            currentContext?.wallet?.address ||
+            currentContext?.user?.address ||
+            currentContext?.connectedAddress
+
+          if (existingWalletAddress && existingWalletAddress.startsWith('0x')) {
+            console.log('✅ Found wallet address in existing context:', existingWalletAddress)
+            setFarcasterAddress(existingWalletAddress)
+            setIsConnected(true)
+            setIsConnecting(false)
+            return
+          }
+        }
+      } catch (contextError) {
+        console.log('⚠️ Could not get current context:', contextError.message)
+      }
       
+      console.log('🔐 Calling sdk.actions.signIn() for wallet address...')
       const result = await sdk.actions.signIn()
       console.log('🎯 Farcaster sign in result:', result)
       
@@ -331,8 +358,36 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
       
     } catch (error) {
       console.error('❌ Farcaster authentication error:', error)
-      // Show user-friendly error
-      alert(`Farcaster authentication failed: ${error.message}`)
+      
+      // Check if this is the acceptAuthAddress error
+      if (error.message && error.message.includes('acceptAuthAddress')) {
+        console.log('🔍 This appears to be an acceptAuthAddress error - likely a Farcaster SDK configuration issue')
+        console.log('💡 The user may already be authenticated in this Farcaster context')
+        
+        // Try to fall back to using the FID if we can get it from context
+        try {
+          const fallbackContext = await sdk.context
+          const fallbackUserId = fallbackContext?.user?.fid || fallbackContext?.client?.clientFid
+          if (fallbackUserId) {
+            console.log('🔄 Falling back to FID-based connection:', fallbackUserId)
+            setFarcasterAddress(`farcaster:${fallbackUserId}`)
+            setIsConnected(true)
+            console.log('✅ Connected with FID fallback (limited blockchain functionality)')
+            return
+          }
+        } catch (fallbackError) {
+          console.log('⚠️ Fallback to FID also failed:', fallbackError.message)
+        }
+      }
+      
+      // Show user-friendly error based on error type
+      const errorMessage = error.message || 'Unknown authentication error'
+      console.log('🚨 Authentication failed with error:', errorMessage)
+      
+      // Don't show alert in production - just log for debugging
+      if (process.env.NODE_ENV === 'development') {
+        alert(`Farcaster authentication failed: ${errorMessage}`)
+      }
     } finally {
       setIsConnecting(false)
     }
