@@ -88,3 +88,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Mobile footer navigation padding */
+  @media (max-width: 768px) {
+    .mobile-safe-area {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    
+    /* Add bottom padding for mobile footer nav */
+    .main-content {
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+  
+  /* Safe area inset utilities */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

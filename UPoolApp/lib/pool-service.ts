@@ -204,6 +204,27 @@ export class PoolService {
   }
 
   /**
+   * Update pool with user wallet information (NEW PATTERN)
+   * Associates pool with user's CDP wallet instead of individual pool wallet
+   */
+  static async updatePoolWithUserWallet(poolId: string, userWalletInfo: {
+    userWalletId: string
+    userWalletAddress: string
+  }): Promise<void> {
+    try {
+      await this.updatePool(poolId, {
+        userWalletId: userWalletInfo.userWalletId,
+        userWalletAddress: userWalletInfo.userWalletAddress,
+        status: 'pending_payment' // Ready for payment
+      })
+      console.log('✅ Pool updated with user wallet info:', userWalletInfo)
+    } catch (error) {
+      console.error('❌ Error updating pool with user wallet:', error)
+      throw new Error('Failed to associate pool with user wallet')
+    }
+  }
+
+  /**
    * Mark pool as active after successful payment
    */
   static async activatePool(poolId: string, transactionHash?: string): Promise<void> {

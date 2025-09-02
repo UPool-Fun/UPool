@@ -13,8 +13,9 @@ import { TrustBadge } from "@/components/trust-badge"
 import { DepositWithdrawWidget } from "@/components/deposit-withdraw-widget"
 import { MilestoneTracker } from "@/components/milestone-tracker"
 import { WalletAddressCard } from "@/components/wallet-address-card"
+import { Header } from "@/components/header"
 
-// Pool data interface
+// Pool data interface (UPDATED FOR USER WALLET PATTERN)
 interface PoolData {
   id: string
   title: string
@@ -27,6 +28,10 @@ interface PoolData {
   members: number
   creator?: string
   creatorAddress?: string
+  // NEW PATTERN: User wallet instead of individual pool wallet
+  userWalletId?: string
+  userWalletAddress?: string
+  // LEGACY: Deprecated pool wallet fields (for backwards compatibility)
   poolWalletAddress?: string
   vanityUrl: string
   milestones: Array<{
@@ -169,16 +174,12 @@ export default function PoolDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-      {/* Header */}
-      <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">U</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">UPool</span>
-          </Link>
-          <div className="flex items-center space-x-4">
+      {/* Standard Header */}
+      <Header 
+        showExploreButton={true}
+        backButton={{ href: "/explore", text: "Back to Explore" }}
+        customButtons={
+          <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" onClick={() => copyToClipboard(poolData.vanityUrl)}>
               <Copy className="w-4 h-4 mr-2" />
               Copy Link
@@ -188,8 +189,8 @@ export default function PoolDashboard() {
               QR Code
             </Button>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="container mx-auto px-4 py-8">
         {/* Pool Header */}
@@ -376,11 +377,12 @@ export default function PoolDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="w-5 h-5" />
-                  <span>Members ({poolData.membersList.length})</span>
+                  <span>Members ({poolData.membersList?.length || 0})</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {poolData.membersList.slice(0, 5).map((member, index) => (
+                {poolData.membersList && poolData.membersList.length > 0 ? (
+                  poolData.membersList.slice(0, 5).map((member, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -406,8 +408,13 @@ export default function PoolDashboard() {
                       <TrustBadge score={72} type="builder" size="sm" />
                     </div>
                   </div>
-                ))}
-                {poolData.membersList.length > 5 && (
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No members yet. Be the first to join this pool!
+                  </p>
+                )}
+                {poolData.membersList && poolData.membersList.length > 5 && (
                   <Button variant="ghost" size="sm" className="w-full text-xs">
                     View all {poolData.membersList.length} members
                   </Button>
@@ -446,13 +453,15 @@ export default function PoolDashboard() {
                 </div>
                 <p className="text-sm text-gray-600">Share this link with friends to invite them to join your pool</p>
                 
-                {/* Pool Wallet Address for Direct Contributions */}
+                {/* User Wallet Address for Direct Contributions */}
                 <div className="mt-6">
-                  {poolData.poolWalletAddress && (
+                  {(poolData.userWalletAddress || poolData.poolWalletAddress) && (
                     <WalletAddressCard
-                      address={poolData.poolWalletAddress}
-                      title="Pool Wallet Address"
-                      description="Send funds directly to this pool's dedicated wallet"
+                      address={poolData.userWalletAddress || poolData.poolWalletAddress || ''}
+                      title={poolData.userWalletAddress ? "Pool Creator's Wallet" : "Pool Wallet Address"}
+                      description={poolData.userWalletAddress ? 
+                        "Send funds to the pool creator's wallet - all pools are managed through their personal CDP wallet" : 
+                        "Legacy pool wallet - send funds directly to this pool's dedicated wallet"}
                       isFarcaster={false}
                       className="border-solid border-green-200 bg-green-50/50"
                     />

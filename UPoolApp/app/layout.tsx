@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/sonner';
+import { MobileFooterNav } from '@/components/mobile-footer-nav';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -127,6 +128,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <Providers>
           {children}
+          <MobileFooterNav />
           <Toaster />
         </Providers>
       </body>

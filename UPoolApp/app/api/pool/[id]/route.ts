@@ -3,10 +3,10 @@ import { PoolService } from '@/lib/pool-service'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const poolId = params.id
+    const { id: poolId } = await params
     
     if (!poolId) {
       return NextResponse.json(
@@ -44,7 +44,11 @@ export async function GET(
       creatorFid: pool.creatorFid,
       status: pool.status,
       
-      // Pool wallet information
+      // User wallet information (NEW PATTERN)
+      userWalletId: pool.userWalletId,
+      userWalletAddress: pool.userWalletAddress,
+      
+      // Pool wallet information (LEGACY - for backwards compatibility)
       poolWalletAddress: pool.poolWalletAddress,
       poolWalletId: pool.poolWalletId,
       

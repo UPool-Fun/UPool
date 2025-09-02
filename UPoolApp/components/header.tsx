@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { DualConnect } from "./dual-connect"
 import { useWallet } from '@/components/providers/dual-wallet-provider'
 import Image from "next/image"
+import { Settings } from "lucide-react"
 
 interface HeaderProps {
   showCreateButton?: boolean
@@ -67,7 +68,7 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
 
         <nav className="flex items-center space-x-4">
           {/* Navigation Links - Hidden on mobile for space */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* <div className="hidden md:flex items-center space-x-6">
             <Link href="/explore" className="text-gray-600 hover:text-blue-600 transition-colors">
               Explore Pools
             </Link>
@@ -77,40 +78,59 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
             <Link href="/debug" className="text-gray-600 hover:text-blue-600 transition-colors">
               Debug
             </Link>
-          </div>
+          </div> */}
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Hidden on mobile, navigation moved to footer */}
           <div className="flex items-center space-x-3">
-            {showExploreButton && (
-              <Link href="/explore">
-                <button className="px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
-                  Explore Pools
-                </button>
-              </Link>
-            )}
-            
-            {showCreateButton && isConnected && (
-              <>
-                <Link href="/dashboard">
-                  <button className="px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
-                    Dashboard
-                  </button>
-                </Link>
+            {/* Desktop Navigation - only show on desktop */}
+            <div className="hidden md:flex items-center space-x-3">
+              {showExploreButton && (
                 <Link href="/explore">
-                  <button className="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    Explore
+                  <button className="px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
+                    Explore Pools
                   </button>
                 </Link>
-              </>
-            )}
-            
-            {showCreateButton && (
-              <Link href="/create">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  Add Pool
-                </button>
-              </Link>
-            )}
+              )}
+              
+              {showCreateButton && isConnected && (
+                <>
+                  <Link href="/explore">
+                    <button className="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      Explore
+                    </button>
+                  </Link>
+                  <Link href="/dashboard">
+                    <button className="px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
+                      Dashboard
+                    </button>
+                  </Link>
+                  <Link href="/settings">
+                    <button className="px-3 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </button>
+                  </Link>
+                </>
+              )}
+
+              {/* Settings link for authenticated users (always visible when connected) */}
+              {isConnected && !showCreateButton && (
+                <Link href="/settings">
+                  <button className="px-3 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </button>
+                </Link>
+              )}
+              
+              {showCreateButton && (
+                <Link href="/create">
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Add Pool
+                  </button>
+                </Link>
+              )}
+            </div>
 
             {/* Custom Buttons */}
             {customButtons}
