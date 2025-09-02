@@ -1,7 +1,7 @@
 import { http, createConfig } from 'wagmi'
 import { base, baseSepolia, mainnet } from 'wagmi/chains'
 import { injected, walletConnect, baseAccount } from 'wagmi/connectors'
-import { detectEnvironment } from './environment-detection'
+import { detectEnvironment } from './utils/environment-detection'
 
 // Get chain configuration from environment variables
 const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "84532")

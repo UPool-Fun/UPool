@@ -1,6 +1,6 @@
 import { createPublicClient, createWalletClient, custom, http, type PublicClient, type WalletClient, type Address, type Hash } from 'viem'
 import { base, baseSepolia, mainnet } from 'viem/chains'
-import { detectEnvironment, isFarcasterEnvironment } from './environment-detection'
+import { detectEnvironment, isFarcasterEnvironment } from './utils/environment-detection'
 
 // Get chain configuration
 const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "84532")

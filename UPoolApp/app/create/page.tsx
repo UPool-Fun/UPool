@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useAccount } from 'wagmi'
-import { useWallet } from '@/components/providers/dual-wallet-provider'
+import { detectEnvironment } from '@/lib/utils/environment-detection'
+// Using standard Wagmi hooks for wallet connection
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -33,27 +34,24 @@ interface Milestone {
 }
 
 export default function CreatePool() {
-  // Wallet integration - with safe client-side check
+  // Wallet integration using standard Wagmi hooks (consistent with other components)
   const [clientMounted, setClientMounted] = useState(false)
+  const [environment, setEnvironment] = useState<'browser' | 'farcaster-web' | 'farcaster-mobile'>('browser')
   
-  // Safe wallet context usage
-  let walletContext
-  let wagmiAccount
+  // Use standard Wagmi hooks for wallet state
+  const { address, isConnected } = useAccount()
+  const walletAddress = address
   
-  try {
-    walletContext = useWallet()
-    wagmiAccount = useAccount()
-  } catch (error) {
-    // Handle case where provider is not available during SSR
-    walletContext = { address: undefined, isConnected: false, isFarcaster: false }
-    wagmiAccount = { address: undefined }
-  }
+  // Detect environment for UI differences
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const env = detectEnvironment()
+      setEnvironment(env)
+    }
+  }, [])
   
-  const { address, isConnected, isFarcaster } = walletContext
-  const { address: wagmiAddress } = wagmiAccount
-  
-  // Use wagmi address as fallback if wallet provider doesn't have it
-  const walletAddress = address || wagmiAddress
+  // Determine if we're in Farcaster environment
+  const isFarcaster = environment === 'farcaster-web' || environment === 'farcaster-mobile'
   
   const [currentStep, setCurrentStep] = useState(1)
   const [poolId, setPoolId] = useState<string | null>(null)

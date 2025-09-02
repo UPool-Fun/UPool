@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { useWallet } from '@/components/providers/dual-wallet-provider'
+import { useAccount } from 'wagmi'
 import { Home, Search, Plus, Settings, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
@@ -16,18 +16,11 @@ export function MobileFooterNav() {
     setClientMounted(true)
   }, [])
 
-  // Safely get wallet state - handle case where provider isn't available
-  let walletConnected = false;
-  try {
-    const wallet = useWallet();
-    walletConnected = wallet.isConnected;
-  } catch {
-    // Provider not available - use disconnected state
-    walletConnected = false;
-  }
+  // Use standard Wagmi hooks for wallet state (same as Header, DualConnect, and Settings)
+  const { isConnected } = useAccount()
 
   // Only use wallet state after client has mounted to prevent hydration mismatch
-  const isConnected = clientMounted ? walletConnected : false
+  const walletConnected = clientMounted ? isConnected : false
 
   // Don't show footer nav on certain pages
   if (pathname === '/create' || pathname === '/debug' || pathname === '/privacy' || pathname === '/terms' || pathname === '/support') {
@@ -70,7 +63,7 @@ export function MobileFooterNav() {
     <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 md:hidden z-50 mobile-safe-area">
       <nav className="flex items-center justify-around px-2 py-2 pb-safe">
         {navItems.map((item) => {
-          const isDisabled = item.requiresAuth && !isConnected
+          const isDisabled = item.requiresAuth && !walletConnected
           const isClickable = !isDisabled
           
           const buttonContent = (

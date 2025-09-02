@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi'
 import { base, baseSepolia } from 'viem/chains'
 import { sdk } from '@farcaster/miniapp-sdk'
-import { detectEnvironment, isFarcasterEnvironment, checkFarcasterWalletStatus, type AppEnvironment } from '@/lib/environment-detection'
+import { detectEnvironment, isFarcasterEnvironment, type AppEnvironment } from '@/lib/utils/environment-detection'
 import { getPreferredConnector, isConnectorAvailable } from '@/lib/wagmi'
 import { uPoolTxHelper } from '@/lib/viem-utils'
 
@@ -88,15 +88,8 @@ export function useUnifiedWallet(): UnifiedWalletState {
         
         // If Farcaster environment, check for existing authentication
         if (isFarcasterEnvironment() && detectedEnv !== 'browser') {
-          console.log('🔍 Checking Farcaster wallet status...')
-          
-          const walletStatus = await checkFarcasterWalletStatus()
-          if (walletStatus.hasWallet) {
-            setFarcasterConnected(true)
-            setFarcasterAddress(walletStatus.address)
-            setFid(walletStatus.fid)
-            console.log('✅ Found existing Farcaster wallet connection')
-          }
+          console.log('🔍 Farcaster environment detected - using official connector')
+          // Official connector will handle wallet connection automatically
         }
       } catch (error) {
         console.error('❌ Environment initialization error:', error)
