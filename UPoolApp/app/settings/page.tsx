@@ -1,6 +1,6 @@
 'use client'
 
-import { useWallet } from '@/components/providers/dual-wallet-provider'
+// Using standard Wagmi hooks for wallet connection detection
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -9,55 +9,42 @@ import { useTokenBalances, TOKEN_ADDRESSES } from '@/hooks/use-token-balances'
 import { Copy, ExternalLink, Settings, Wallet, DollarSign, Info, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState, useEffect } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi'
+import { detectEnvironment } from '@/lib/utils/environment-detection'
 import { Header } from '@/components/header'
 import Link from 'next/link'
 
 export default function SettingsPage() {
   const [clientMounted, setClientMounted] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [environment, setEnvironment] = useState<'browser' | 'farcaster-web' | 'farcaster-mobile'>('browser')
 
-  // Safe wallet context usage with SSR protection
-  let address: string | undefined
-  let isConnected = false
-  let isFarcaster = false
-  let wagmiAddress: string | undefined
-  
-  try {
-    const walletContext = useWallet()
-    address = walletContext?.address
-    isConnected = walletContext?.isConnected || false
-    isFarcaster = walletContext?.isFarcaster || false
-  } catch (error) {
-    // Handle SSR or provider not available
-    address = undefined
-    isConnected = false
-    isFarcaster = false
-  }
+  // Use standard Wagmi hooks for wallet state (same as Header and DualConnect)
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
 
-  try {
-    const wagmiAccount = useAccount()
-    wagmiAddress = wagmiAccount?.address
-  } catch (error) {
-    wagmiAddress = undefined
-  }
+  // Detect environment for UI differences
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const env = detectEnvironment()
+      setEnvironment(env)
+    }
+  }, [])
 
-  // Use the appropriate address based on environment
-  const walletAddress = address || wagmiAddress
+  // Determine if we're in Farcaster environment
+  const isFarcaster = environment === 'farcaster-web' || environment === 'farcaster-mobile'
+  const walletAddress = address
 
   // Client-side mounting check
   useEffect(() => {
     setClientMounted(true)
   }, [])
 
-  // Disconnect function
+  // Disconnect function using standard Wagmi hook
   const handleDisconnect = async () => {
     try {
-      const walletContext = useWallet()
-      if (walletContext?.disconnect) {
-        await walletContext.disconnect()
-        toast.success('Wallet disconnected successfully')
-      }
+      await disconnect()
+      toast.success('Wallet disconnected successfully')
     } catch (error) {
       console.error('Disconnect error:', error)
       toast.error('Failed to disconnect wallet')

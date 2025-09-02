@@ -7,6 +7,7 @@ import { OnchainKitProvider } from '@coinbase/onchainkit'
 import { createConfig, http } from "wagmi"
 import { baseSepolia, base } from "wagmi/chains"
 import { injected } from "wagmi/connectors"
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { SdkInitializer } from '@/components/sdk-initializer'
 
@@ -14,16 +15,15 @@ import { SdkInitializer } from '@/components/sdk-initializer'
 const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "84532")
 const targetChain = TARGET_CHAIN_ID === 8453 ? base : baseSepolia
 
-// Farcaster Mini App specific wagmi configuration
-// In Farcaster, the user's wallet is pre-connected, so we use injected connector
+// Farcaster Mini App specific wagmi configuration  
+// Using official @farcaster/miniapp-wagmi-connector to eliminate acceptAuthAddress errors
 const farcasterWagmiConfig = createConfig({
-  chains: [targetChain], // Use same chain as main app
+  chains: [base, baseSepolia, targetChain], // Support multiple chains
   connectors: [
-    injected({
+    farcasterMiniApp(), // Official Farcaster Mini App connector - FIXES acceptAuthAddress errors
+    injected({ // Fallback for compatibility
       shimDisconnect: true,
     }),
-    // Note: @farcaster/miniapp-wagmi-connector would go here when available
-    // farcasterMiniApp(), 
   ],
   transports: {
     [base.id]: http(process.env.NEXT_PUBLIC_RPC_URL_BASE || 'https://mainnet.base.org'),

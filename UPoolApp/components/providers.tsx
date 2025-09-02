@@ -7,9 +7,9 @@ import { OnchainKitProvider } from '@coinbase/onchainkit'
 import { ThemeProvider } from 'next-themes'
 import { base, baseSepolia } from 'wagmi/chains'
 import { config } from '@/lib/wagmi'
-import { detectEnvironment, logEnvironmentInfo, type AppEnvironment } from '@/lib/environment-detection'
+import { detectEnvironment, logEnvironmentInfo, type AppEnvironment } from '@/lib/utils/environment-detection'
 import { FarcasterWebProviders, FarcasterMobileProviders } from '@/components/providers/farcaster-providers'
-import { DualWalletProvider } from '@/components/providers/dual-wallet-provider'
+// DualWalletProvider removed - using standard Wagmi patterns now
 
 // Get chain configuration from environment
 const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "84532")
@@ -30,9 +30,7 @@ function BrowserProviders({ children }: { children: ReactNode }) {
       >
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
-            <DualWalletProvider>
-              {children}
-            </DualWalletProvider>
+            {children}
           </QueryClientProvider>
         </WagmiProvider>
       </OnchainKitProvider>

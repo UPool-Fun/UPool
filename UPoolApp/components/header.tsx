@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { DualConnect } from "./dual-connect"
-import { useWallet } from '@/components/providers/dual-wallet-provider'
+import { useAccount } from 'wagmi'
 import Image from "next/image"
 import { Settings } from "lucide-react"
 
@@ -29,18 +29,11 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
     setClientMounted(true)
   }, [])
 
-  // Safely get wallet state - handle case where provider isn't available
-  let walletConnected = false;
-  try {
-    const wallet = useWallet();
-    walletConnected = wallet.isConnected;
-  } catch {
-    // Provider not available - use disconnected state
-    walletConnected = false;
-  }
+  // Use standard Wagmi hooks for wallet state (same as DualConnect)
+  const { isConnected } = useAccount()
 
   // Only use wallet state after client has mounted to prevent hydration mismatch
-  const isConnected = clientMounted ? walletConnected : false
+  const walletConnected = clientMounted ? isConnected : false
   
   return (
     <header className="border-b border-blue-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -92,7 +85,7 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
                 </Link>
               )}
               
-              {showCreateButton && isConnected && (
+              {showCreateButton && walletConnected && (
                 <>
                   <Link href="/explore">
                     <button className="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -114,7 +107,7 @@ export function Header({ showCreateButton = false, showExploreButton = false, ba
               )}
 
               {/* Settings link for authenticated users (always visible when connected) */}
-              {isConnected && !showCreateButton && (
+              {walletConnected && !showCreateButton && (
                 <Link href="/settings">
                   <button className="px-3 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
                     <Settings className="h-4 w-4" />

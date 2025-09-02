@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useWallet } from '@/components/providers/dual-wallet-provider'
+import { useAccount } from 'wagmi'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,19 +19,8 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [clientMounted, setClientMounted] = useState(false)
 
-  // Safe wallet context usage with SSR protection
-  let address: string | undefined
-  let isConnected = false
-  
-  try {
-    const walletContext = useWallet()
-    address = walletContext?.address
-    isConnected = walletContext?.isConnected || false
-  } catch (error) {
-    // Handle SSR or provider not available
-    address = undefined
-    isConnected = false
-  }
+  // Use standard Wagmi hooks for wallet state (consistent with other components)
+  const { address, isConnected } = useAccount()
 
   // Client-side mounting check
   useEffect(() => {
@@ -67,8 +56,8 @@ export default function Dashboard() {
     return <div>Loading...</div>
   }
 
-  // If not connected, show connect prompt
-  if (!isConnected) {
+  // If not connected, show connect prompt (only after client has mounted)
+  if (clientMounted && !isConnected) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
         <Header showCreateButton={true} showExploreButton={false} />
