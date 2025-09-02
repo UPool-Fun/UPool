@@ -17,6 +17,7 @@ import { pay, getPaymentStatus } from '@base-org/account'
 import { BasePayButton } from '@base-org/account-ui/react'
 import { PoolService } from '@/lib/pool-service'
 import { PoolData } from '@/lib/firestore-schema'
+// Note: UserWalletService is only used server-side via API calls
 import { toast } from 'sonner'
 import MilestoneManager from '@/components/milestone-manager'
 import { Header } from '@/components/header'
@@ -159,7 +160,7 @@ export default function CreatePool() {
 
 
 
-  // Base Pay payment - works with or without Wagmi connection
+  // Base Pay payment - using user wallet service pattern
   const handleBasePayDeposit = async () => {
     if (!poolId || !walletAddress) {
       toast.error('Please complete previous steps first')
@@ -168,64 +169,79 @@ export default function CreatePool() {
 
     try {
       setPaymentStatus('processing')
-      setPaymentStatusMessage('Creating pool wallet...')
+      setPaymentStatusMessage('Getting or creating your wallet...')
       
-      // Step 1: Create CDP Server Wallet for the pool
-      console.log('🔑 Creating pool wallet via CDP...')
-      const walletResponse = await fetch('/api/pool/create-wallet', {
+      // Step 1: Get or create user wallet via API (following exampleApp pattern)
+      console.log('🔑 Getting or creating user wallet via CDP API...')
+      const walletResponse = await fetch('/api/user/create-wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ poolId })
+        body: JSON.stringify({
+          creatorAddress: walletAddress,
+          creatorFid: isFarcaster ? address?.replace('farcaster:', '') : undefined,
+          source: isFarcaster ? 'farcaster' : 'web',
+          poolId: poolId // Associate pool with user wallet
+        })
       })
       
       if (!walletResponse.ok) {
         const errorData = await walletResponse.json()
-        throw new Error(errorData.error || 'Failed to create pool wallet')
+        throw new Error(errorData.error || 'Failed to create user wallet')
       }
       
-      const walletData = await walletResponse.json()
-      console.log('✅ Pool wallet created:', walletData.walletAddress)
+      const userWallet = await walletResponse.json()
+      console.log('✅ User wallet ready:', userWallet.userWalletAddress)
       
-      setPaymentStatusMessage('Pool wallet created! Initiating payment...')
+      // Step 2: Associate pool with user wallet (done automatically by the service)
+      // No need for separate API call - this is handled in the service
       
-      // Step 2: Update pool status to payment processing
+      // Step 3: Update pool with user wallet information (NEW PATTERN)
+      await PoolService.updatePoolWithUserWallet(poolId, {
+        userWalletId: userWallet.userWalletId,
+        userWalletAddress: userWallet.userWalletAddress
+      })
+      
+      setPaymentStatusMessage('User wallet ready! Initiating payment...')
+      
+      // Step 4: Update pool status to payment processing
       await PoolService.markPaymentProcessing(poolId, 'pending')
       
       // Log wallet context for debugging
-      console.log('Base Pay Context:', {
+      console.log('Base Pay Context (User Wallet Pattern):', {
         poolId,
-        poolWalletAddress: walletData.walletAddress,
-        walletAddress,
+        userWalletAddress: userWallet.userWalletAddress,
+        userWalletId: userWallet.userWalletId,
+        connectedWallet: walletAddress,
         wagmiAddress,
         isFarcaster,
         isConnected,
         userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi'
       })
       
-      // Step 3: Base Pay to the pool wallet (not dummy address)
+      // Step 5: Base Pay to the user's wallet (not individual pool wallet)
       const { id } = await pay({
         amount: '0.01', // USD – SDK automatically converts to USDC
-        to: walletData.walletAddress, // Send to actual pool wallet
+        to: userWallet.userWalletAddress, // Send to user's CDP wallet
         testnet: true // Use Base Sepolia testnet
       });
 
       setPaymentId(id);
       
-      // Step 4: Update pool with payment ID
+      // Step 6: Update pool with payment ID
       await PoolService.markPaymentProcessing(poolId, id)
       
       setPaymentStatus('success')
-      setPaymentStatusMessage('✅ Payment initiated successfully! Pool wallet funded.')
+      setPaymentStatusMessage('✅ Payment initiated successfully! User wallet funded.')
       
-      toast.success('Payment initiated successfully! Pool wallet created and funded.')
+      toast.success('Payment initiated successfully! Your wallet is set up and funded.')
       
-      console.log('Base Pay payment completed:', {
+      console.log('Base Pay payment completed (User Wallet Pattern):', {
         paymentId: id,
         amount: '0.01 USD → USDC',
         poolTitle: poolData.title,
         poolId,
-        poolWalletAddress: walletData.walletAddress,
-        userWallet: walletAddress,
+        userWalletAddress: userWallet.userWalletAddress,
+        connectedWallet: walletAddress,
         wagmiWallet: wagmiAddress,
         userType: isFarcaster ? 'Farcaster' : 'Browser/Wagmi'
       })
@@ -244,7 +260,7 @@ export default function CreatePool() {
       } else if (errorMessage.toLowerCase().includes('network')) {
         toast.error('Network error. Please check your connection and try again.')
       } else if (errorMessage.toLowerCase().includes('wallet')) {
-        toast.error('Failed to create pool wallet. Please try again.')
+        toast.error('Failed to create user wallet. Please try again.')
       } else {
         toast.error(`Payment failed: ${errorMessage}`)
       }
@@ -530,15 +546,15 @@ export default function CreatePool() {
       case 8:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Initial Pool Deposit</h3>
+            <h3 className="text-lg font-semibold">Initial Pool Setup & Deposit</h3>
             <div className="space-y-4">
               <Card className="border border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-3 mb-4">
                     <Wallet className="w-6 h-6 text-blue-600" />
                     <div>
-                      <h4 className="font-medium">Base Account Integration</h4>
-                      <p className="text-sm text-gray-600">Make your first deposit using Base Pay on Base Sepolia</p>
+                      <h4 className="font-medium">User Wallet Setup</h4>
+                      <p className="text-sm text-gray-600">Create your personal CDP wallet and make initial deposit via Base Pay</p>
                     </div>
                   </div>
                   
@@ -578,8 +594,8 @@ export default function CreatePool() {
                         <div className="my-6">
                           <WalletAddressCard
                             address={walletAddress}
-                            title="Your Pool Wallet"
-                            description="Share this address so others can contribute directly to your pool"
+                            title="Your Wallet Address"
+                            description="This is your connected wallet address. Pool funds will be managed through your personal CDP wallet."
                             isFarcaster={isFarcaster}
                           />
                         </div>
@@ -688,9 +704,9 @@ export default function CreatePool() {
               </Card>
 
               <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg">
-                <p className="font-medium mb-1">About Base Account Integration</p>
-                <p>This integrates with real Base Pay to process actual deposits on Base Sepolia testnet. The payment will be converted to USDC and sent to the pool address.</p>
-                <p className="mt-2 text-xs">Note: This is a testnet transaction. No real funds will be transferred.</p>
+                <p className="font-medium mb-1">About User Wallet Setup</p>
+                <p>This creates your personal CDP Server Wallet and makes the initial deposit via Base Pay. Your wallet will manage all your pools securely on Base Sepolia testnet.</p>
+                <p className="mt-2 text-xs">Note: This is a testnet transaction. Each user gets one wallet that manages all their pools.</p>
               </div>
             </div>
           </div>

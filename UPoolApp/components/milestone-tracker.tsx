@@ -175,7 +175,8 @@ export function MilestoneTracker({ milestones, onSubmitProof, userRole }: Milest
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {localMilestones.map((milestone, index) => (
+          {localMilestones && localMilestones.length > 0 ? (
+            localMilestones.map((milestone, index) => (
             <div key={milestone.id} className="relative">
               {/* Connecting Line */}
               {index < localMilestones.length - 1 && (
@@ -191,12 +192,12 @@ export function MilestoneTracker({ milestones, onSubmitProof, userRole }: Milest
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{milestone.title}</h3>
-                          <p className="text-sm text-gray-600">{milestone.description}</p>
+                          <h3 className="font-semibold text-gray-900">{milestone.title || 'Untitled Milestone'}</h3>
+                          <p className="text-sm text-gray-600">{milestone.description || 'No description provided'}</p>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-lg text-gray-900">${milestone.amount.toLocaleString()}</div>
-                          <div className="text-sm text-gray-600">{milestone.percentage}% of pool</div>
+                          <div className="font-bold text-lg text-gray-900">${milestone.amount?.toLocaleString() || '0'}</div>
+                          <div className="text-sm text-gray-600">{milestone.percentage || 0}% of pool</div>
                         </div>
                       </div>
 
@@ -329,7 +330,14 @@ export function MilestoneTracker({ milestones, onSubmitProof, userRole }: Milest
                 </CardContent>
               </Card>
             </div>
-          ))}
+          ))
+          ) : (
+            <div className="text-center py-8">
+              <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Milestones Available</h3>
+              <p className="text-gray-500">This pool doesn't have any milestones configured yet.</p>
+            </div>
+          )}}
         </CardContent>
       </Card>
     </>

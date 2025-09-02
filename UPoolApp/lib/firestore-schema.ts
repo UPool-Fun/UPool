@@ -34,11 +34,15 @@ export interface PoolDocument {
   status: 'draft' | 'pending_payment' | 'payment_processing' | 'active' | 'completed' | 'cancelled'
   poolData: PoolData
   
-  // Pool wallet information (CDP Server Wallet)
+  // User wallet association (NEW PATTERN)
+  userWalletId: string      // CDP wallet ID belonging to creator
+  userWalletAddress: string // Blockchain address for pool funds
+  
+  // Legacy pool wallet fields (DEPRECATED - remove after migration)
   poolWalletId?: string
   poolWalletAddress?: string
-  poolWalletMnemonic?: string // Encrypted in production
-  poolWalletSeed?: string // Encrypted in production
+  poolWalletMnemonic?: string
+  poolWalletSeed?: string
   
   // Payment tracking
   paymentId?: string

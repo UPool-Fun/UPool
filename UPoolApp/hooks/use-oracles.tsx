@@ -18,7 +18,9 @@ import {
 export const PLATFORM_CONFIG = {
   FEE_PERCENTAGE: 0.1, // 0.1% platform fee
   FEE_RECIPIENT: process.env.NEXT_PUBLIC_PLATFORM_FEE_RECIPIENT || "0x742d35Cc6634C0532925a3b8D43b3f15e9f28ed8",
-  PRIVATE_KEY: process.env.NEXT_PUBLIC_PLATFORM_PRIVATE_KEY, // For transaction fees
+  // ❌ SECURITY FIX: Private key should NEVER be in client-side code
+  // Private keys should only be used in server-side API routes or backend services
+  // PRIVATE_KEY: process.env.NEXT_PUBLIC_PLATFORM_PRIVATE_KEY, // REMOVED - security vulnerability
 } as const;
 
 interface OracleState {
@@ -226,15 +228,15 @@ export function usePlatformFees() {
 
   // Get platform wallet for fee collection
   const getPlatformWallet = useCallback(() => {
-    if (!PLATFORM_CONFIG.PRIVATE_KEY) {
-      throw new Error('Platform private key not configured');
-    }
+    // ❌ SECURITY FIX: Platform transactions should be handled server-side
+    // Private key operations moved to API routes for security
+    throw new Error('Platform transactions must be handled server-side via API routes');
     
     // In production, this would use a secure key management system
     // For development, we'll use environment variables
     return {
       address: PLATFORM_CONFIG.FEE_RECIPIENT,
-      privateKey: PLATFORM_CONFIG.PRIVATE_KEY,
+      // privateKey: undefined, // SECURITY FIX: Removed client-side private key
     };
   }, []);
 
@@ -262,7 +264,7 @@ export function usePlatformFees() {
     feeRecipient: PLATFORM_CONFIG.FEE_RECIPIENT,
     calculateFee,
     prepareFeeTransaction,
-    hasPlatformKey: !!PLATFORM_CONFIG.PRIVATE_KEY,
+    hasPlatformKey: false, // SECURITY FIX: Platform operations moved to server-side
   };
 }
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { IdentityCard } from '@coinbase/onchainkit/identity'
 import { Button } from '@/components/ui/button'
 import { useWallet } from '@/components/providers/dual-wallet-provider'
-import { Wallet } from 'lucide-react'
+import { Wallet, LogOut } from 'lucide-react'
 import { base, baseSepolia } from 'viem/chains'
 
 interface DualConnectProps {
@@ -117,8 +117,9 @@ export function DualConnect({ size = 'default' }: DualConnectProps) {
             size="sm"
             variant="ghost"
             className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+            title="Disconnect wallet"
           >
-            ×
+            <LogOut className="h-3 w-3" />
           </Button>
         </div>
       </div>
@@ -136,7 +137,7 @@ export function DualConnect({ size = 'default' }: DualConnectProps) {
         variant="ghost"
         className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
       >
-        ×
+        <LogOut className="h-3 w-3" />
       </Button>
     </div>
   )

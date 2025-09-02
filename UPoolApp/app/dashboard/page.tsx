@@ -205,9 +205,9 @@ export default function Dashboard() {
           </div>
 
           {/* Debug Info */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <WagmiWalletInfo />
-          </div>
+          </div> */}
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
