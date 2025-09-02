@@ -24,6 +24,7 @@ interface WalletContextType {
   isConnecting: boolean
   isFarcaster: boolean
   environmentReady: boolean
+  isValidEthAddress: boolean  // New: indicates if address is valid for RPC calls
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined)
@@ -169,7 +170,8 @@ function BrowserWallet({ children }: { children: ReactNode }) {
     disconnect,
     isConnecting,
     isFarcaster: false,
-    environmentReady: true
+    environmentReady: true,
+    isValidEthAddress: !!(address && typeof address === 'string' && address.startsWith('0x') && address.length === 42)
   }
 
   console.log('🌐 BrowserWallet state:', { isConnected, address, connectors: connectors.length })
@@ -200,19 +202,47 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
         
         console.log('🎯 FarcasterWallet context:', context)
         
-        // Check multiple possible user identification patterns
+        // In Farcaster, user should already have a connected wallet
+        // We need the actual wallet address, not the FID
         const userId = context?.user?.fid || context?.client?.clientFid || context?.user?.userId
-        const isAuthenticated = !!(userId || context?.user?.isAuthenticated)
         
-        if (userId) {
-          setFarcasterAddress(`farcaster:${userId}`)
+        // More comprehensive wallet address extraction
+        const walletAddress = 
+          context?.user?.wallet?.address ||           // Standard wallet location
+          context?.wallet?.address ||                 // Alternative wallet location
+          context?.user?.address ||                   // Direct user address
+          context?.user?.walletAddress ||             // Alternative property name
+          context?.client?.wallet?.address ||         // Client wallet
+          context?.connectedAddress ||                // Connected address property
+          context?.activeAddress ||                   // Active address property
+          context?.ethAddress ||                      // Ethereum address property
+          context?.wallets?.[0]?.address ||           // First wallet in array
+          context?.accounts?.[0]?.address             // First account address
+        
+        console.log('🎯 FarcasterWallet: Complete context analysis:', {
+          userId,
+          walletAddress,
+          fullContext: context,
+          user: context?.user,
+          wallet: context?.wallet,
+          client: context?.client,
+          wallets: context?.wallets,
+          accounts: context?.accounts
+        })
+        
+        if (walletAddress && typeof walletAddress === 'string' && walletAddress.startsWith('0x') && walletAddress.length === 42) {
+          // Use the actual wallet address from Farcaster
+          setFarcasterAddress(walletAddress)
           setIsConnected(true)
-          console.log('✅ Already authenticated with Farcaster FID:', userId)
-        } else if (isAuthenticated) {
-          // User is authenticated but no FID available - use generic identifier
-          setFarcasterAddress('farcaster:authenticated')
-          setIsConnected(true)
-          console.log('✅ Authenticated with Farcaster (no FID available)')
+          console.log('✅ Using Farcaster wallet address:', walletAddress)
+        } else if (userId) {
+          // If no wallet address found, try to get it through signIn
+          console.log('⚠️ No valid wallet address found, attempting signIn to get address...')
+          setTimeout(() => {
+            if (!isConnected) {
+              connect() // This will call signIn and try to get the wallet address
+            }
+          }, 500)
         } else {
           console.log('ℹ️ User not authenticated in Farcaster - auth required')
         }
@@ -246,12 +276,57 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
       
       // Get updated context after sign in
       const context = await sdk.context
-      if (context?.user?.fid) {
-        setFarcasterAddress(`farcaster:${context.user.fid}`)
+      console.log('🎯 Context after signIn:', context)
+      
+      // Comprehensive wallet address extraction from both result and context
+      const walletFromResult = 
+        result?.wallet?.address ||                    // Standard result wallet
+        result?.address ||                            // Direct result address
+        result?.walletAddress ||                      // Alternative result property
+        result?.connectedAddress ||                   // Connected address in result
+        result?.user?.wallet?.address ||              // User wallet in result
+        result?.user?.address                         // User address in result
+
+      const walletFromContext = 
+        context?.user?.wallet?.address ||             // Standard context wallet location
+        context?.wallet?.address ||                   // Alternative context wallet location
+        context?.user?.address ||                     // Direct user address
+        context?.user?.walletAddress ||               // Alternative property name
+        context?.client?.wallet?.address ||           // Client wallet
+        context?.connectedAddress ||                  // Connected address property
+        context?.activeAddress ||                     // Active address property
+        context?.ethAddress ||                        // Ethereum address property
+        context?.wallets?.[0]?.address ||             // First wallet in array
+        context?.accounts?.[0]?.address               // First account address
+
+      // Prefer wallet from result, fallback to context
+      const walletAddress = walletFromResult || walletFromContext
+      
+      const userId = context?.user?.fid || context?.client?.clientFid || context?.user?.userId
+      
+      console.log('🎯 SignIn wallet address extraction:', {
+        walletFromResult,
+        walletFromContext,
+        finalWalletAddress: walletAddress,
+        userId,
+        resultObject: result,
+        contextObject: context
+      })
+      
+      if (walletAddress && typeof walletAddress === 'string' && walletAddress.startsWith('0x') && walletAddress.length === 42) {
+        // Use the actual wallet address
+        setFarcasterAddress(walletAddress)
         setIsConnected(true)
-        console.log('✅ Farcaster authentication successful:', context.user.fid)
+        console.log('✅ Farcaster authentication successful with wallet:', walletAddress)
+      } else if (userId) {
+        // Still no wallet address - this might be a limitation of the current SDK/environment
+        console.log('⚠️ No wallet address found even after signIn - this may be expected in some Farcaster environments')
+        console.log('🔍 Using FID for now, but RPC calls may fail:', userId)
+        setFarcasterAddress(`farcaster:${userId}`)
+        setIsConnected(true)
+        console.log('✅ Farcaster authentication successful with FID (limited functionality):', userId)
       } else {
-        throw new Error('No user FID found in context after sign in')
+        throw new Error('No user identification found in context after sign in')
       }
       
     } catch (error) {
@@ -280,10 +355,22 @@ function FarcasterWallet({ children }: { children: ReactNode }) {
     disconnect,
     isConnecting,
     isFarcaster: true,
-    environmentReady: true
+    environmentReady: true,
+    isValidEthAddress: !!(farcasterAddress && typeof farcasterAddress === 'string' && farcasterAddress.startsWith('0x') && farcasterAddress.length === 42)
   }
 
-  console.log('🎯 FarcasterWallet state:', { isConnected, address: farcasterAddress })
+  console.log('🎯 FarcasterWallet state:', { 
+    isConnected, 
+    address: farcasterAddress,
+    isValidEthAddress: !!(farcasterAddress && typeof farcasterAddress === 'string' && farcasterAddress.startsWith('0x') && farcasterAddress.length === 42),
+    addressType: farcasterAddress?.startsWith('farcaster:') ? 'FID' : farcasterAddress?.startsWith('0x') ? 'ETH_ADDRESS' : 'UNKNOWN'
+  })
+
+  // Warning for FID usage
+  if (isConnected && farcasterAddress?.startsWith('farcaster:')) {
+    console.warn('⚠️ IMPORTANT: Using FID format address - RPC calls will fail!')
+    console.warn('🔧 This may be expected if Farcaster SDK doesn\'t provide wallet addresses in this environment')
+  }
 
   return (
     <WalletContext.Provider value={contextValue}>
