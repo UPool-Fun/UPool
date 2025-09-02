@@ -24,5 +24,6 @@
     "description": "UPool is a social app that lets friends and communities pool money, grow it with yield, and unlock it through milestone-based voting and trust.",
     "subtitle": "Fund it. Prove it. Unlock it.",
     "heroImageUrl": "https://upool.fun/hero.png",
-    "ogImageUrl": "https://upool.fun/icon.png"
+    "ogImageUrl": "https://upool.fun/icon.png",
+    "imageUrl": "https://upool.fun/icon.png"
   }}
